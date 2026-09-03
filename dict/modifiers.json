@@ -1,0 +1,19 @@
+{
+  "MOD_CAPS": "􀠀",
+  "MOD_TRAIL_SPACE": "􀠁",
+  "MOD_TRAIL_COMMA": "􀠂",
+  "MOD_TRAIL_PERIOD": "􀠃",
+  "MOD_TRAIL_QUESTION": "􀠄",
+  "MOD_TRAIL_EXCL": "􀠅",
+  "MOD_TRAIL_SEMI": "􀠆",
+  "MOD_TRAIL_COLON": "􀠇",
+  "MOD_TRAIL_RPAREN": "􀠈",
+  "MOD_TRAIL_RBRACKET": "􀠉",
+  "MOD_TRAIL_RBRACE": "􀠊",
+  "MOD_TRAIL_RQUOTE": "􀠋",
+  "MOD_LEAD_SPACE": "􀠌",
+  "MOD_LEAD_LPAREN": "􀠍",
+  "MOD_LEAD_LBRACKET": "􀠎",
+  "MOD_LEAD_LBRACE": "􀠏",
+  "MOD_LEAD_LQUOTE": "􀠐"
+}
