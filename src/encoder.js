@@ -71,17 +71,29 @@ export function encode(text, opts = {}) {
       }
     }
 
-    // If longest match is a single letter, try fragments before falling back
-    if (bestLen === 1) {
+    // Try word-based encoding at word starts for better compression.
+    // Trigger when: at a word start AND (longest match is a single letter OR
+    // longest match is shorter than the full word — meaning we can do better
+    // with base word + modifiers).
+    // Skip for CamelCase words (mixed internal caps) — MOD_CAPS can't handle them.
+    {
       const word = extractWord(chars, i);
 
-      // Only try word-based encoding if we're at a word start
       if (word.length > 1) {
         const lower = word.toLowerCase();
-
-        // FIRST: Try whole word + modifiers
         const baseSym = patternToSymbol.get(lower);
-        if (baseSym) {
+
+        // Calculate how much of the word the longest match covers
+        const longestMatchCovers = bestLen;
+
+        // Detect CamelCase: has uppercase after position 0
+        const hasInternalCaps = word.slice(1) !== word.slice(1).toLowerCase();
+
+        // Try word-based if: longest match covers less than half the word
+        // (meaning word+modifier is likely more efficient)
+        // AND word is not CamelCase
+        if (!hasInternalCaps && baseSym && longestMatchCovers < lower.length / 2) {
+          // FIRST: Try whole word + modifiers (handles "Hello" → "hello" + MOD_CAPS)
           output += baseSym;
           matches++;
           if (steps) steps.push({ type: 'base', pattern: lower, symbol: baseSym, pos: i });
@@ -114,65 +126,68 @@ export function encode(text, opts = {}) {
           continue;
         }
 
-        // SECOND: Try fragments ONLY if whole word not found
-        let fragI = 0;
-        let matchedFrag = false;
-        while (fragI < lower.length) {
-          let bestFrag = null;
-          let bestFragLen = 0;
-          for (const frag of sortedPatterns) {
-            const fragLen = frag.length;
-            if (fragLen < 2 || fragLen > 4) continue;
-            if (fragLen <= lower.length - fragI && lower.startsWith(frag, fragI)) {
-              if (fragLen > bestFragLen) {
-                bestFrag = frag;
-                bestFragLen = fragLen;
+        // SECOND: Try fragments if whole word not in dict and match covers less than half
+        // Skip for CamelCase words — use longest-match instead
+        if (!hasInternalCaps && longestMatchCovers < lower.length / 2 && !baseSym) {
+          let fragI = 0;
+          let matchedFrag = false;
+          while (fragI < lower.length) {
+            let bestFrag = null;
+            let bestFragLen = 0;
+            for (const frag of sortedPatterns) {
+              const fragLen = frag.length;
+              if (fragLen < 2 || fragLen > 4) continue;
+              if (fragLen <= lower.length - fragI && lower.startsWith(frag, fragI)) {
+                if (fragLen > bestFragLen) {
+                  bestFrag = frag;
+                  bestFragLen = fragLen;
+                }
+                break;
               }
-              break;
             }
-          }
-          if (bestFrag) {
-            const fragSym = patternToSymbol.get(bestFrag);
-            if (fragSym) {
-              output += fragSym;
-              matches++;
-              if (steps) steps.push({ type: 'fragment', pattern: bestFrag, symbol: fragSym, pos: i + fragI });
-              fragI += bestFragLen;
-              matchedFrag = true;
-              continue;
-            }
-          }
-          break;
-        }
-
-        if (matchedFrag && fragI > 0) {
-          i += fragI;
-
-          if (word[0] !== lower[0]) {
-            const capsSym = patternToSymbol.get('MOD_CAPS');
-            if (capsSym) {
-              output += capsSym;
-              matches++;
-              if (steps) steps.push({ type: 'modifier', name: 'MOD_CAPS', symbol: capsSym, pos: i });
-            }
-          }
-
-          while (i < chars.length) {
-            const modName = punctuationToModifier(chars[i]);
-            if (modName) {
-              const modSym = patternToSymbol.get(modName);
-              if (modSym) {
-                output += modSym;
+            if (bestFrag) {
+              const fragSym = patternToSymbol.get(bestFrag);
+              if (fragSym) {
+                output += fragSym;
                 matches++;
-                if (steps) steps.push({ type: 'modifier', name: modName, symbol: modSym, pos: i });
-                i++;
+                if (steps) steps.push({ type: 'fragment', pattern: bestFrag, symbol: fragSym, pos: i + fragI });
+                fragI += bestFragLen;
+                matchedFrag = true;
                 continue;
               }
             }
             break;
           }
 
-          continue;
+          if (matchedFrag && fragI > 0) {
+            i += fragI;
+
+            if (word[0] !== lower[0]) {
+              const capsSym = patternToSymbol.get('MOD_CAPS');
+              if (capsSym) {
+                output += capsSym;
+                matches++;
+                if (steps) steps.push({ type: 'modifier', name: 'MOD_CAPS', symbol: capsSym, pos: i });
+              }
+            }
+
+            while (i < chars.length) {
+              const modName = punctuationToModifier(chars[i]);
+              if (modName) {
+                const modSym = patternToSymbol.get(modName);
+                if (modSym) {
+                  output += modSym;
+                  matches++;
+                  if (steps) steps.push({ type: 'modifier', name: modName, symbol: modSym, pos: i });
+                  i++;
+                  continue;
+                }
+              }
+              break;
+            }
+
+            continue;
+          }
         }
       }
     }

@@ -10,16 +10,24 @@ Text → [Dict Encoder] → AICL (PUA symbols) → [AICL Tokenizer] → Token ID
 
 | Text Type | Ratio | Example |
 |---|---|---|
-| Mixed text | **5.2x** | Code + English mixed |
-| Git/CLI commands | **4.4x** | `git diff --stat && npm test` |
-| JavaScript/TypeScript | **4.1x** | `const x = await db.query(...)` |
-| Academic/Technical | **4.0x** | Transformer architecture docs |
-| SQL queries | **3.8x** | `SELECT * FROM users WHERE...` |
-| API documentation | **3.1x** | Endpoint descriptions |
-| English prose | **2.9x** | Natural language text |
-| ChatGPT-style text | **2.9x** | AI assistant responses |
-| Python/Shell | **2.0-2.4x** | Script code |
-| **Overall average** | **2.65x** | Diverse corpus |
+| Code: const/let | **4.1x** | `const app = express(); app.get(...)` |
+| Git/CLI commands | **3.8x** | `git diff --stat && npm test` |
+| Common English | **3.1x** | Natural language text |
+| Markdown full | **2.9x** | Full markdown documents |
+| The Test Phase | **2.9x** | Mixed text |
+| SQL queries | **2.8x** | `SELECT * FROM users WHERE...` |
+| Markdown | **2.6x** | Headers, lists, code blocks |
+| Shell commands | **2.4x** | Terminal commands |
+| Operator soup | **2.3x** | Heavy operator usage |
+| Paths/URLs | **2.0x** | File paths and URLs |
+| Code snippets | **1.9x** | JavaScript/Python code |
+| API response | **1.9x** | JSON API responses |
+| Hex/Binary | **1.7x** | Hex/binary literals |
+| Repeating text | **1.6x** | Repeated patterns |
+| JSON/XML/HTML | **1.5x** | Structured data |
+| Mixed symbols | **1.4x** | Symbol-heavy text |
+| Alphanumeric | **1.3x** | Random alphanumeric |
+| **Overall average** | **2.0x** | Diverse corpus (19 tests) |
 
 ## Quick Start
 
@@ -48,11 +56,11 @@ node test/test.js
 
 Maps common patterns to single Unicode PUA (Private Use Area) symbols:
 
-- **10,807 English words** — single letters, high-frequency words, technical terms
-- **1,663 code patterns** — `console.log(`, `SELECT *`, `const`, `async`, etc.
-- **742 markdown/phrase patterns** — `# `, `**`, `- `, ```` ``` ````
+- **48,712 English words** — single letters, 47k+ frequency-sorted words, technical terms
+- **2,048 code patterns** — `console.log(`, `SELECT *`, `const`, `async`, etc.
+- **1,024 markdown/phrase patterns** — `# `, `**`, `- `, ```` ``` ````, common phrases
 - **17 shared modifiers** — `MOD_CAPS`, `MOD_TRAIL_PERIOD`, `MOD_TRAIL_SPACE`, etc.
-- **360+ fragments** — common letter pairs (`th`, `ing`, `tion`) and mixed patterns (`a0-z9`)
+- **530+ fragments** — common letter pairs (`th`, `ing`, `tion`), code fragments (`src`, `ctx`), mixed patterns (`a0-z9`, `ab0-ab9`)
 
 The encoder uses a 3-tier approach:
 1. **Longest match first** — context patterns like `" the "` (3 chars) beat bare words
@@ -113,9 +121,9 @@ node src/cli.js visual "your text here"
 
 | Dictionary | Range | Count |
 |---|---|---|
-| English | `U+E001-U+F8FF` + overflow `U+100900+` | 10,807 |
-| Code | `U+F0000-U+F07FF` | 1,663 |
-| Phrases/Symbols | `U+F0800-U+F0FFF` + `U+100000-U+1007FF` | 742 |
+| English | `U+E001-U+F8FF` + overflow `U+100900+` | 48,712 |
+| Code | `U+F0000-U+F07FF` | 2,048 |
+| Phrases/Symbols | `U+F0800-U+F0FFF` + `U+100000-U+1007FF` | 1,024 |
 | Modifiers | `U+100800-U+1008FF` | 17 |
 | Escape marker | `U+E000` | Reserved |
 
@@ -131,7 +139,7 @@ Instead of storing 14 variants per word (` test `, ` test,`, ` test.`, etc.), AI
 
 ## Performance
 
-- **Dictionary size**: 210 KB (all JSON files)
+- **Dictionary size**: 855 KB (all JSON files)
 - **Encoding**: O(n × m) where n = text length, m = longest pattern
 - **Decoding**: O(n) single pass with buffer
 
