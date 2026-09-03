@@ -74,6 +74,8 @@ export function encode(text, opts = {}) {
     // If longest match is a single letter, try fragments before falling back
     if (bestLen === 1) {
       const word = extractWord(chars, i);
+
+      // Only try word-based encoding if we're at a word start
       if (word.length > 1) {
         const lower = word.toLowerCase();
 

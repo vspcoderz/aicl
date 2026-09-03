@@ -292,6 +292,110 @@ function generateEnglishDict(words) {
     }
   }
 
+  // === TIER 6: Common technical terms (not in Google 10k) ===
+  const techTerms = [
+    'markdown', 'javascript', 'typescript', 'python', 'rust', 'golang',
+    'react', 'vue', 'angular', 'svelte', 'nextjs', 'nodejs', 'deno',
+    'docker', 'kubernetes', 'terraform', 'ansible', 'jenkins',
+    'postgresql', 'mongodb', 'redis', 'elasticsearch', 'kafka',
+    'graphql', 'restful', 'websocket', 'grpc', 'protobuf',
+    'algorithm', 'recursion', 'iteration', 'inheritance', 'polymorphism',
+    'abstraction', 'encapsulation', 'async', 'await', 'promise',
+    'callback', 'closure', 'prototype', 'module', 'package',
+    'repository', 'commit', 'branch', 'merge', 'rebase', 'cherry',
+    'pullrequest', 'codebase', 'refactor', 'debug',
+    'benchmark', 'profiling', 'latency', 'throughput', 'bottleneck',
+    'scalability', 'redundancy', 'failover', 'loadbalancer', 'microservice',
+    'monolith', 'serverless', 'edge', 'caching',
+    'authentication', 'authorization', 'encryption', 'decryption',
+    'tokenization', 'inference', 'training', 'dataset', 'model',
+    'architecture', 'hyperparameter', 'gradient', 'backpropagation',
+    'neuralnetwork', 'transformer', 'attention', 'embedding',
+    'vector', 'dimension', 'tensor', 'matrix', 'activation',
+    'lossfunction', 'optimizer', 'learningrate', 'epoch', 'batch',
+    'regularization', 'dropout', 'normalization', 'convolution',
+    'pooling', 'recurrent', 'lstm', 'gru', 'bert', 'gpt',
+    'diffusion', 'generative', 'discriminative', 'reinforcement',
+    'supervised', 'unsupervised', 'semisupervised', 'transfer',
+    'finetuning', 'prompting', 'chainofthought', 'fewshot',
+    'zeroshot', 'hallucination', 'alignment', 'safety', 'bias',
+    'fairness', 'interpretability', 'explainability', 'robustness',
+    'adversarial', 'outofdistribution', 'distribution', 'entropy',
+    'kl', 'divergence', 'likelihood', 'posterior', 'prior',
+    'bayesian', 'frequentist', 'statistical', 'probability',
+    'regression', 'classification', 'clustering', 'dimensionality',
+    'reduction', 'manifold', 'topology', 'geometry', 'calculus',
+    'derivative', 'hessian', 'jacobian', 'eigenvalue',
+    'singular', 'decomposition', 'factorization', 'optimization',
+    'convex', 'nonconvex', 'constraint',
+    'interpolation', 'extrapolation', 'approximation',
+    'unicode', 'utf', 'ascii', 'hexadecimal', 'binary', 'octal',
+    'decimal', 'boolean', 'integer', 'float', 'string', 'array',
+    'object', 'function', 'class', 'interface', 'enum', 'struct',
+    'union', 'pointer', 'reference', 'value', 'type', 'var',
+    'const', 'let', 'static', 'global', 'local', 'public', 'private',
+    'protected', 'abstract', 'virtual', 'override', 'final',
+    'sealed', 'readonly', 'volatile', 'atomic', 'synchronized',
+    'concurrent', 'parallel', 'asynchronous', 'synchronous',
+    'taskboard', 'todo', 'kanban', 'scrum', 'sprint', 'backlog',
+    'standup', 'retrospective', 'planning', 'estimation',
+  ];
+
+  // === TIER 7: Case-sensitive fragments ===
+  // MOD_CAPS only capitalizes first letter. These handle all-caps and camelCase fragments.
+  const caseSensitiveFragments = [
+    // All-caps (common in code/tech)
+    'FF', 'FF00', 'FF0000', 'FF00FF', 'FFFF00', '00FF00', '0000FF',
+    'OK', 'IO', 'EOF', 'EOL', 'CR', 'LF', 'CRLF', 'LF', 'TAB', 'NULL',
+    'INT', 'STR', 'BOOL', 'CHAR', 'BYTE', 'LONG', 'VOID', 'NULL',
+    'TRUE', 'FALSE', 'NONE', 'NaN', 'INF',
+    'GET', 'POST', 'PUT', 'DEL', 'PATCH', 'HEAD', 'OPTIONS',
+    'SSL', 'TLS', 'RSA', 'AES', 'MD5', 'SHA', 'HMAC',
+    'CPU', 'GPU', 'RAM', 'ROM', 'SSD', 'HDD', 'USB', 'PCI',
+    'LAN', 'WAN', 'NAT', 'DNS', 'DHCP', 'SMTP', 'POP3', 'IMAP',
+    'HTTP', 'HTTPS', 'WSS', 'WS', 'UDP', 'TCP', 'IP', 'IPv4', 'IPv6',
+    'JSON', 'XML', 'YAML', 'TOML', 'INI', 'CSV', 'TSV',
+    'HTML', 'CSS', 'JS', 'TS', 'JSX', 'TSX', 'MD', 'TXT',
+    'EOF', 'EOL', 'NUL', 'ACK', 'NAK', 'SYN', 'FIN', 'RST',
+    // CamelCase fragments (common in code)
+    'In', 'To', 'By', 'On', 'At', 'Up', 'Go', 'Do', 'If', 'Or',
+    'Is', 'As', 'No', 'So', 'An', 'Be', 'It', 'We', 'He', 'My',
+    'Get', 'Set', 'Add', 'Del', 'Run', 'Put', 'Try', 'Log', 'Map',
+    'Use', 'New', 'Old', 'Big', 'Raw', 'Low', 'Max', 'Min', 'Avg',
+    'Top', 'Bot', 'Left', 'Right', 'Up', 'Down', 'In', 'Out',
+    'Push', 'Pop', 'Read', 'Play', 'Load', 'Save', 'Send', 'Sort',
+    'Band', 'Key', 'Val', 'Src', 'Dst', 'Buf', 'Ctx', 'Err',
+    'Req', 'Res', 'Idx', 'Pos', 'Len', 'Size', 'Type', 'Name',
+    'Path', 'File', 'Dir', 'Url', 'Cmd', 'Arg', 'Env', 'Log',
+    'Api', 'App', 'Db', 'Id', 'Ip', 'Ui', 'Os', 'Fs',
+    // Hex patterns
+    'AF', 'DE', 'AD', 'BE', 'CA', 'FE', 'BA', 'AB', 'CD',
+    'EF', '00', '11', '22', '33', '44', '55', '66', '77', '88', '99',
+    'AA', 'BB', 'CC', 'DD',
+  ];
+
+  for (const frag of caseSensitiveFragments) {
+    if (symbolIndex >= maxEntries) break;
+    if (!entries.has(frag)) {
+      const sym = indexToSymbol(symbolIndex, PUA_RANGES.english);
+      if (sym) {
+        entries.set(frag, sym);
+        symbolIndex++;
+      }
+    }
+  }
+
+  for (const term of techTerms) {
+    if (symbolIndex >= maxEntries) break;
+    if (!entries.has(term)) {
+      const sym = indexToSymbol(symbolIndex, PUA_RANGES.english);
+      if (sym) {
+        entries.set(term, sym);
+        symbolIndex++;
+      }
+    }
+  }
+
   return Object.fromEntries(entries);
 }
 
