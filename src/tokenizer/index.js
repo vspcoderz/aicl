@@ -141,9 +141,12 @@ export function detokenize(ids, vocab = loadTokenizer()) {
 export function trainTokenizer(aiclCorpus, opts = {}) {
   const numMerges = opts.numMerges ?? 4096;
   const mergeBase = opts.mergeBase ?? DEFAULT_MERGE_BASE;
+  const maxTokenLen = opts.maxTokenLength ?? 5;
+  const minFreq = opts.minFrequency ?? 2;
 
   const seqs = aiclCorpus.map((t) => codePoints(t).map(cpToId));
   const merges = new Map();
+  const tokenLen = new Map(); // id -> PUA length
   let rank = 0;
 
   for (let m = 0; m < numMerges; m++) {
@@ -151,6 +154,9 @@ export function trainTokenizer(aiclCorpus, opts = {}) {
     for (const seq of seqs) {
       for (let i = 0; i < seq.length - 1; i++) {
         const key = pairKey(seq[i], seq[i + 1]);
+        const lenA = tokenLen.get(seq[i]) ?? 1;
+        const lenB = tokenLen.get(seq[i + 1]) ?? 1;
+        if (lenA + lenB > maxTokenLen) continue;
         pairCounts.set(key, (pairCounts.get(key) || 0) + 1);
       }
     }
@@ -159,18 +165,19 @@ export function trainTokenizer(aiclCorpus, opts = {}) {
     let bestKey = null;
     let bestCount = 0;
     for (const [key, count] of pairCounts) {
-      if (count > bestCount) {
+      if (count > bestCount && count >= minFreq) {
         bestCount = count;
         bestKey = key;
       }
     }
-    if (bestKey === null || bestCount < 2) break;
+    if (bestKey === null || bestCount < minFreq) break;
 
     const sep = bestKey.indexOf(':');
     const a = Number(bestKey.slice(0, sep));
     const b = Number(bestKey.slice(sep + 1));
     const mergedId = mergeBase + rank;
     merges.set(mergedId, { a, b, rank });
+    tokenLen.set(mergedId, (tokenLen.get(a) ?? 1) + (tokenLen.get(b) ?? 1));
     rank++;
 
     for (let s = 0; s < seqs.length; s++) {
@@ -188,7 +195,7 @@ export function trainTokenizer(aiclCorpus, opts = {}) {
     }
   }
 
-  return { merges, mergeBase, numMerges: merges.size, version: '1.0' };
+  return { merges, mergeBase, numMerges: merges.size, version: '1.0', maxTokenLength: maxTokenLen };
 }
 
 /**
@@ -203,6 +210,7 @@ export function loadTokenizer() {
     mergeBase: raw.mergeBase ?? DEFAULT_MERGE_BASE,
     numMerges: raw.numMerges ?? merges.size,
     version: raw.version ?? '1.0',
+    maxTokenLength: raw.maxTokenLength ?? 5,
   };
 }
 
@@ -215,6 +223,7 @@ export function saveTokenizer(vocab, path = VOCAB_PATH) {
     mergeBase: vocab.mergeBase ?? DEFAULT_MERGE_BASE,
     version: vocab.version ?? '1.0',
     numMerges: vocab.numMerges ?? vocab.merges.size,
+    maxTokenLength: vocab.maxTokenLength ?? 5,
   };
   writeFileSync(path, JSON.stringify(data, null, 2));
 }

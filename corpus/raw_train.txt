@@ -1,0 +1,124 @@
+the quick brown fox jumps over the lazy dog the quick brown fox jumps over the lazy dog the quick brown fox jumps over the lazy dog the quick brown fox jumps over the lazy dog the quick brown fox jumps over the lazy dog the quick brown fox jumps over the lazy dog the quick brown fox jumps over the lazy dog the quick brown fox jumps over the lazy dog the quick brown fox jumps over the lazy dog the quick brown fox jumps over the lazy dog the quick brown fox jumps over the lazy dog the quick brown fox jumps over the lazy dog the quick brown fox jumps over the lazy dog the quick brown fox jumps over the lazy dog the quick brown fox jumps over the lazy dog the quick brown fox jumps over the lazy dog the quick brown fox jumps over the lazy dog the quick brown fox jumps over the lazy dog the quick brown fox jumps over the lazy dog the quick brown fox jumps over the lazy dog the quick brown fox jumps over the lazy dog the quick brown fox jumps over the lazy dog the quick brown fox jumps over the lazy dog the quick brown fox jumps over the lazy dog the quick brown fox jumps over the lazy dog the quick brown fox jumps over the lazy dog the quick brown fox jumps over the lazy dog the quick brown fox jumps over the lazy dog the quick brown fox jumps over the lazy dog the quick brown fox jumps over the lazy dog the quick brown fox jumps over the lazy dog the quick brown fox jumps over the lazy dog the quick brown fox jumps over the lazy dog the quick brown fox jumps over the lazy dog the quick brown fox jumps over the lazy dog the quick brown fox jumps over the lazy dog the quick brown fox jumps over the lazy dog the quick brown fox jumps over the lazy dog the quick brown fox jumps over the lazy dog the quick brown fox jumps over the lazy dog the quick brown fox jumps over the lazy dog the quick brown fox jumps over the lazy dog the quick brown fox jumps over the lazy dog the quick brown fox jumps over the lazy dog the quick brown fox jumps over the lazy dog the quick brown fox jumps over the lazy dog the quick brown fox jumps over the lazy dog the quick brown fox jumps over the lazy dog the quick brown fox jumps over the lazy dog the quick brown fox jumps over the lazy dog 
+artificial intelligence is transforming software development artificial intelligence is transforming software development artificial intelligence is transforming software development artificial intelligence is transforming software development artificial intelligence is transforming software development artificial intelligence is transforming software development artificial intelligence is transforming software development artificial intelligence is transforming software development artificial intelligence is transforming software development artificial intelligence is transforming software development artificial intelligence is transforming software development artificial intelligence is transforming software development artificial intelligence is transforming software development artificial intelligence is transforming software development artificial intelligence is transforming software development artificial intelligence is transforming software development artificial intelligence is transforming software development artificial intelligence is transforming software development artificial intelligence is transforming software development artificial intelligence is transforming software development artificial intelligence is transforming software development artificial intelligence is transforming software development artificial intelligence is transforming software development artificial intelligence is transforming software development artificial intelligence is transforming software development artificial intelligence is transforming software development artificial intelligence is transforming software development artificial intelligence is transforming software development artificial intelligence is transforming software development artificial intelligence is transforming software development artificial intelligence is transforming software development artificial intelligence is transforming software development artificial intelligence is transforming software development artificial intelligence is transforming software development artificial intelligence is transforming software development artificial intelligence is transforming software development artificial intelligence is transforming software development artificial intelligence is transforming software development artificial intelligence is transforming software development artificial intelligence is transforming software development 
+const app = express(); app.get("/api/tasks", async (req, res) => { const tasks = await db.query("SELECT * FROM tasks"); res.json(tasks); }); const app = express(); app.get("/api/tasks", async (req, res) => { const tasks = await db.query("SELECT * FROM tasks"); res.json(tasks); }); const app = express(); app.get("/api/tasks", async (req, res) => { const tasks = await db.query("SELECT * FROM tasks"); res.json(tasks); }); const app = express(); app.get("/api/tasks", async (req, res) => { const tasks = await db.query("SELECT * FROM tasks"); res.json(tasks); }); const app = express(); app.get("/api/tasks", async (req, res) => { const tasks = await db.query("SELECT * FROM tasks"); res.json(tasks); }); const app = express(); app.get("/api/tasks", async (req, res) => { const tasks = await db.query("SELECT * FROM tasks"); res.json(tasks); }); const app = express(); app.get("/api/tasks", async (req, res) => { const tasks = await db.query("SELECT * FROM tasks"); res.json(tasks); }); const app = express(); app.get("/api/tasks", async (req, res) => { const tasks = await db.query("SELECT * FROM tasks"); res.json(tasks); }); const app = express(); app.get("/api/tasks", async (req, res) => { const tasks = await db.query("SELECT * FROM tasks"); res.json(tasks); }); const app = express(); app.get("/api/tasks", async (req, res) => { const tasks = await db.query("SELECT * FROM tasks"); res.json(tasks); }); const app = express(); app.get("/api/tasks", async (req, res) => { const tasks = await db.query("SELECT * FROM tasks"); res.json(tasks); }); const app = express(); app.get("/api/tasks", async (req, res) => { const tasks = await db.query("SELECT * FROM tasks"); res.json(tasks); }); const app = express(); app.get("/api/tasks", async (req, res) => { const tasks = await db.query("SELECT * FROM tasks"); res.json(tasks); }); const app = express(); app.get("/api/tasks", async (req, res) => { const tasks = await db.query("SELECT * FROM tasks"); res.json(tasks); }); const app = express(); app.get("/api/tasks", async (req, res) => { const tasks = await db.query("SELECT * FROM tasks"); res.json(tasks); }); const app = express(); app.get("/api/tasks", async (req, res) => { const tasks = await db.query("SELECT * FROM tasks"); res.json(tasks); }); const app = express(); app.get("/api/tasks", async (req, res) => { const tasks = await db.query("SELECT * FROM tasks"); res.json(tasks); }); const app = express(); app.get("/api/tasks", async (req, res) => { const tasks = await db.query("SELECT * FROM tasks"); res.json(tasks); }); const app = express(); app.get("/api/tasks", async (req, res) => { const tasks = await db.query("SELECT * FROM tasks"); res.json(tasks); }); const app = express(); app.get("/api/tasks", async (req, res) => { const tasks = await db.query("SELECT * FROM tasks"); res.json(tasks); }); const app = express(); app.get("/api/tasks", async (req, res) => { const tasks = await db.query("SELECT * FROM tasks"); res.json(tasks); }); const app = express(); app.get("/api/tasks", async (req, res) => { const tasks = await db.query("SELECT * FROM tasks"); res.json(tasks); }); const app = express(); app.get("/api/tasks", async (req, res) => { const tasks = await db.query("SELECT * FROM tasks"); res.json(tasks); }); const app = express(); app.get("/api/tasks", async (req, res) => { const tasks = await db.query("SELECT * FROM tasks"); res.json(tasks); }); const app = express(); app.get("/api/tasks", async (req, res) => { const tasks = await db.query("SELECT * FROM tasks"); res.json(tasks); }); const app = express(); app.get("/api/tasks", async (req, res) => { const tasks = await db.query("SELECT * FROM tasks"); res.json(tasks); }); const app = express(); app.get("/api/tasks", async (req, res) => { const tasks = await db.query("SELECT * FROM tasks"); res.json(tasks); }); const app = express(); app.get("/api/tasks", async (req, res) => { const tasks = await db.query("SELECT * FROM tasks"); res.json(tasks); }); const app = express(); app.get("/api/tasks", async (req, res) => { const tasks = await db.query("SELECT * FROM tasks"); res.json(tasks); }); const app = express(); app.get("/api/tasks", async (req, res) => { const tasks = await db.query("SELECT * FROM tasks"); res.json(tasks); }); 
+SELECT id, title, completed FROM tasks WHERE completed = false ORDER BY created_at DESC LIMIT 20; SELECT id, title, completed FROM tasks WHERE completed = false ORDER BY created_at DESC LIMIT 20; SELECT id, title, completed FROM tasks WHERE completed = false ORDER BY created_at DESC LIMIT 20; SELECT id, title, completed FROM tasks WHERE completed = false ORDER BY created_at DESC LIMIT 20; SELECT id, title, completed FROM tasks WHERE completed = false ORDER BY created_at DESC LIMIT 20; SELECT id, title, completed FROM tasks WHERE completed = false ORDER BY created_at DESC LIMIT 20; SELECT id, title, completed FROM tasks WHERE completed = false ORDER BY created_at DESC LIMIT 20; SELECT id, title, completed FROM tasks WHERE completed = false ORDER BY created_at DESC LIMIT 20; SELECT id, title, completed FROM tasks WHERE completed = false ORDER BY created_at DESC LIMIT 20; SELECT id, title, completed FROM tasks WHERE completed = false ORDER BY created_at DESC LIMIT 20; SELECT id, title, completed FROM tasks WHERE completed = false ORDER BY created_at DESC LIMIT 20; SELECT id, title, completed FROM tasks WHERE completed = false ORDER BY created_at DESC LIMIT 20; SELECT id, title, completed FROM tasks WHERE completed = false ORDER BY created_at DESC LIMIT 20; SELECT id, title, completed FROM tasks WHERE completed = false ORDER BY created_at DESC LIMIT 20; SELECT id, title, completed FROM tasks WHERE completed = false ORDER BY created_at DESC LIMIT 20; SELECT id, title, completed FROM tasks WHERE completed = false ORDER BY created_at DESC LIMIT 20; SELECT id, title, completed FROM tasks WHERE completed = false ORDER BY created_at DESC LIMIT 20; SELECT id, title, completed FROM tasks WHERE completed = false ORDER BY created_at DESC LIMIT 20; SELECT id, title, completed FROM tasks WHERE completed = false ORDER BY created_at DESC LIMIT 20; SELECT id, title, completed FROM tasks WHERE completed = false ORDER BY created_at DESC LIMIT 20; SELECT id, title, completed FROM tasks WHERE completed = false ORDER BY created_at DESC LIMIT 20; SELECT id, title, completed FROM tasks WHERE completed = false ORDER BY created_at DESC LIMIT 20; SELECT id, title, completed FROM tasks WHERE completed = false ORDER BY created_at DESC LIMIT 20; SELECT id, title, completed FROM tasks WHERE completed = false ORDER BY created_at DESC LIMIT 20; SELECT id, title, completed FROM tasks WHERE completed = false ORDER BY created_at DESC LIMIT 20; SELECT id, title, completed FROM tasks WHERE completed = false ORDER BY created_at DESC LIMIT 20; SELECT id, title, completed FROM tasks WHERE completed = false ORDER BY created_at DESC LIMIT 20; SELECT id, title, completed FROM tasks WHERE completed = false ORDER BY created_at DESC LIMIT 20; SELECT id, title, completed FROM tasks WHERE completed = false ORDER BY created_at DESC LIMIT 20; SELECT id, title, completed FROM tasks WHERE completed = false ORDER BY created_at DESC LIMIT 20; 
+# Taskboard API
+## Setup
+- [x] install
+```javascript
+const api = require("taskboard");
+```
+# Taskboard API
+## Setup
+- [x] install
+```javascript
+const api = require("taskboard");
+```
+# Taskboard API
+## Setup
+- [x] install
+```javascript
+const api = require("taskboard");
+```
+# Taskboard API
+## Setup
+- [x] install
+```javascript
+const api = require("taskboard");
+```
+# Taskboard API
+## Setup
+- [x] install
+```javascript
+const api = require("taskboard");
+```
+# Taskboard API
+## Setup
+- [x] install
+```javascript
+const api = require("taskboard");
+```
+# Taskboard API
+## Setup
+- [x] install
+```javascript
+const api = require("taskboard");
+```
+# Taskboard API
+## Setup
+- [x] install
+```javascript
+const api = require("taskboard");
+```
+# Taskboard API
+## Setup
+- [x] install
+```javascript
+const api = require("taskboard");
+```
+# Taskboard API
+## Setup
+- [x] install
+```javascript
+const api = require("taskboard");
+```
+# Taskboard API
+## Setup
+- [x] install
+```javascript
+const api = require("taskboard");
+```
+# Taskboard API
+## Setup
+- [x] install
+```javascript
+const api = require("taskboard");
+```
+# Taskboard API
+## Setup
+- [x] install
+```javascript
+const api = require("taskboard");
+```
+# Taskboard API
+## Setup
+- [x] install
+```javascript
+const api = require("taskboard");
+```
+# Taskboard API
+## Setup
+- [x] install
+```javascript
+const api = require("taskboard");
+```
+# Taskboard API
+## Setup
+- [x] install
+```javascript
+const api = require("taskboard");
+```
+# Taskboard API
+## Setup
+- [x] install
+```javascript
+const api = require("taskboard");
+```
+# Taskboard API
+## Setup
+- [x] install
+```javascript
+const api = require("taskboard");
+```
+# Taskboard API
+## Setup
+- [x] install
+```javascript
+const api = require("taskboard");
+```
+# Taskboard API
+## Setup
+- [x] install
+```javascript
+const api = require("taskboard");
+```
