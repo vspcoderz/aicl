@@ -1,68 +1,51 @@
-<svg width="900" height="560" xmlns="http://www.w3.org/2000/svg">
-<style>
-  .t { font: 700 20px 'Inter', system-ui, sans-serif; fill: #f9fafb; letter-spacing: -0.4px; }
-  .s { font: 400 11.5px 'Inter', system-ui, sans-serif; fill: #9ca3af; letter-spacing: 0.2px; }
-  .n { font: 500 12.5px 'Inter', system-ui, sans-serif; fill: #e5e7eb; }
-  .v { font: 600 11px 'Inter', system-ui, sans-serif; fill: #0a0a0a; }
-  .vg { font: 600 10px 'Inter', system-ui, sans-serif; fill: #9ca3af; }
-  .a { font: 400 10px 'Inter', system-ui, sans-serif; fill: #6b7280; }
-</style>
-<rect width="900" height="560" rx="16" fill="#0a0a0a"/>
-<!-- header -->
-<text x="36" y="46" class="t">AICLTokenizer vs GPT-4o</text>
-<text x="36" y="66" class="s">chars per token · higher = fewer tokens · 2–5 PUA → 1 token · 249 merges</text>
-<!-- legend -->
-<circle cx="36" cy="84" r="4.5" fill="#27272a" stroke="#3f3f46" stroke-width="1"/><text x="48" y="88" class="s">GPT-4o</text>
-<circle cx="108" cy="84" r="4.5" fill="#fafafa"/><text x="120" y="88" class="s">AICLTokenizer</text>
-<text x="720" y="88" class="s">+ up to <tspan fill="#fafafa" font-weight="700">4× fewer tokens</tspan></text>
-
-<!-- grid -->
+<svg width="900" height="580" xmlns="http://www.w3.org/2000/svg">
+<style>.t{font:700 20px 'Inter',system-ui,sans-serif;fill:#f9fafb;letter-spacing:-0.3px}.s{font:400 11px 'Inter',system-ui,sans-serif;fill:#9ca3af}.n{font:600 11px 'Inter',system-ui,sans-serif;fill:#e5e7eb}.a{font:400 9px 'Inter',system-ui,sans-serif;fill:#6b7280}</style>
+<rect width="900" height="580" rx="16" fill="#0a0a0a"/>
+<text x="36" y="40" class="t">AICLTokenizer vs GPT-4o (o200k_base)</text>
+<text x="36" y="60" class="s">tokens — lower is better · 2–5 PUA → 1 token · 249 merges · vertical square bars</text>
+<circle cx="36" cy="78" r="5" fill="#27272a"/><text x="48" y="82" class="s">GPT-4o</text><circle cx="110" cy="78" r="5" fill="#fafafa"/><text x="122" y="82" class="s">AICLTokenizer</text>
+<!-- grid y 0-220 -->
 <g stroke="#1f1f23" stroke-width="1">
-  <line x1="180" y1="102" x2="180" y2="418"/>
-  <line x1="310" y1="102" x2="310" y2="418"/>
-  <line x1="440" y1="102" x2="440" y2="418"/>
-  <line x1="570" y1="102" x2="570" y2="418"/>
-  <line x1="700" y1="102" x2="700" y2="418"/>
-  <line x1="830" y1="102" x2="830" y2="418"/>
+  <line x1="60" y1="110" x2="860" y2="110"/><line x1="60" y1="184" x2="860" y2="184"/><line x1="60" y1="258" x2="860" y2="258"/><line x1="60" y1="332" x2="860" y2="332"/><line x1="60" y1="406" x2="860" y2="406"/>
 </g>
-<text x="180" y="436" class="a" text-anchor="middle">0</text>
-<text x="310" y="436" class="a" text-anchor="middle">4</text>
-<text x="440" y="436" class="a" text-anchor="middle">8</text>
-<text x="570" y="436" class="a" text-anchor="middle">12</text>
-<text x="700" y="436" class="a" text-anchor="middle">16</text>
+<text x="48" y="114" class="a" text-anchor="end">220</text><text x="48" y="188" class="a" text-anchor="end">165</text><text x="48" y="262" class="a" text-anchor="end">110</text><text x="48" y="336" class="a" text-anchor="end">55</text><text x="48" y="410" class="a" text-anchor="end">0</text>
 
-<!-- Common English: GPT 4.81, AICL 6.16 -->
-<text x="36" y="122" class="n">Common English</text>
-<rect x="180" y="107" width="156" height="13" rx="0" fill="#27272a"/><text x="188" y="117" class="vg">4.81</text>
-<rect x="180" y="127" width="200" height="13" rx="0" fill="#fafafa"/><text x="188" y="137" class="v">6.16 · 1.28×</text>
-
-<!-- Code: GPT 3.89, AICL 15.56 -->
-<text x="36" y="172" class="n">Code</text>
-<rect x="180" y="157" width="126" height="13" rx="0" fill="#27272a"/><text x="188" y="167" class="vg">3.89</text>
-<rect x="180" y="177" width="505" height="13" rx="0" fill="#fafafa"/><text x="188" y="187" class="v">15.56 · 4.00×</text>
-
-<!-- SQL: GPT 3.57, AICL 4.26 -->
-<text x="36" y="222" class="n">SQL</text>
-<rect x="180" y="207" width="116" height="13" rx="0" fill="#27272a"/><text x="188" y="217" class="vg">3.57</text>
-<rect x="180" y="227" width="138" height="13" rx="0" fill="#fafafa"/><text x="188" y="237" class="v">4.26 · 1.19×</text>
-
-<!-- API: GPT 2.64, AICL 10.16 -->
-<text x="36" y="272" class="n">API response</text>
-<rect x="180" y="257" width="86" height="13" rx="0" fill="#27272a"/><text x="188" y="267" class="vg">2.64</text>
-<rect x="180" y="277" width="330" height="13" rx="0" fill="#fafafa"/><text x="188" y="287" class="v">10.16 · 3.85×</text>
-
-<!-- Normal Prompt: GPT 2.61, AICL 2.77 -->
-<text x="36" y="322" class="n">Normal Prompt</text>
-<rect x="180" y="307" width="85" height="13" rx="0" fill="#27272a"/><text x="188" y="317" class="vg">2.61</text>
-<rect x="180" y="327" width="90" height="13" rx="0" fill="#fafafa"/><text x="188" y="337" class="v">2.77 · 1.06×</text>
-
-<!-- Alphanumeric: GPT 1.36, AICL 1.44 -->
-<text x="36" y="372" class="n">Alphanumeric</text>
-<rect x="180" y="357" width="44" height="13" rx="0" fill="#27272a"/><text x="188" y="367" class="vg">1.36</text>
-<rect x="180" y="377" width="47" height="13" rx="0" fill="#fafafa"/><text x="188" y="387" class="v">1.44 · 1.06×</text>
-
-<!-- divider -->
-<line x1="36" y1="470" x2="864" y2="470" stroke="#1f1f23"/>
-<text x="36" y="490" class="s">Pipeline: raw → AICL (48k dict) → BPE (249 merges, 2–5 PUA/token) · 131/131 pass · github.com/vspcoderz/aicl</text>
-<text x="36" y="508" class="s">1 token = 9–22 chars vs GPT-4o 4 chars</text>
+<!-- Common English: GPT 32, AICL 25 -->
+<g transform="translate(90,0)">
+  <rect x="0" y="360" width="26" height="47" fill="#27272a"/><text x="13" y="354" text-anchor="middle" fill="#9ca3af" font-size="9" font-weight="600">32</text>
+  <rect x="30" y="370" width="26" height="36" fill="#fafafa"/><text x="43" y="364" text-anchor="middle" fill="#fafafa" font-size="9" font-weight="700">25</text>
+  <text x="28" y="440" text-anchor="middle" class="n">Common</text><text x="28" y="452" text-anchor="middle" class="n">English</text><text x="28" y="468" text-anchor="middle" fill="#10b981" font-size="9" font-weight="700">1.28×</text>
+</g>
+<!-- Code: GPT 36, AICL 9 -->
+<g transform="translate(210,0)">
+  <rect x="0" y="354" width="26" height="52" fill="#27272a"/><text x="13" y="348" text-anchor="middle" fill="#9ca3af" font-size="9" font-weight="600">36</text>
+  <rect x="0" y="393" width="26" height="13" fill="#fafafa"/><text x="13" y="387" text-anchor="middle" fill="#fafafa" font-size="9" font-weight="700">9</text>
+  <text x="13" y="440" text-anchor="middle" class="n">Code</text><text x="13" y="468" text-anchor="middle" fill="#10b981" font-size="9" font-weight="700">4.00×</text>
+</g>
+<!-- SQL: GPT 37, AICL 31 -->
+<g transform="translate(330,0)">
+  <rect x="0" y="352" width="26" height="54" fill="#27272a"/><text x="13" y="346" text-anchor="middle" fill="#9ca3af" font-size="9" font-weight="600">37</text>
+  <rect x="0" y="361" width="26" height="45" fill="#fafafa"/><text x="13" y="355" text-anchor="middle" fill="#fafafa" font-size="9" font-weight="700">31</text>
+  <text x="13" y="440" text-anchor="middle" class="n">SQL</text><text x="13" y="468" text-anchor="middle" fill="#10b981" font-size="9" font-weight="700">1.19×</text>
+</g>
+<!-- API: GPT 73, AICL 19 -->
+<g transform="translate(450,0)">
+  <rect x="0" y="300" width="26" height="106" fill="#27272a"/><text x="13" y="294" text-anchor="middle" fill="#9ca3af" font-size="9" font-weight="600">73</text>
+  <rect x="0" y="379" width="26" height="27" fill="#fafafa"/><text x="13" y="373" text-anchor="middle" fill="#fafafa" font-size="9" font-weight="700">19</text>
+  <text x="13" y="440" text-anchor="middle" class="n">API</text><text x="13" y="452" text-anchor="middle" class="n">response</text><text x="13" y="468" text-anchor="middle" fill="#10b981" font-size="9" font-weight="700">3.85×</text>
+</g>
+<!-- Normal Prompt: GPT 51, AICL 48 -->
+<g transform="translate(570,0)">
+  <rect x="0" y="332" width="26" height="74" fill="#27272a"/><text x="13" y="326" text-anchor="middle" fill="#9ca3af" font-size="9" font-weight="600">51</text>
+  <rect x="0" y="337" width="26" height="69" fill="#fafafa"/><text x="13" y="331" text-anchor="middle" fill="#fafafa" font-size="9" font-weight="700">48</text>
+  <text x="13" y="440" text-anchor="middle" class="n">Normal</text><text x="13" y="452" text-anchor="middle" class="n">Prompt</text><text x="13" y="468" text-anchor="middle" fill="#10b981" font-size="9" font-weight="700">1.06×</text>
+</g>
+<!-- Alphanumeric: GPT 211, AICL 200 -->
+<g transform="translate(690,0)">
+  <rect x="0" y="100" width="26" height="306" fill="#27272a"/><text x="13" y="94" text-anchor="middle" fill="#9ca3af" font-size="9" font-weight="600">211</text>
+  <rect x="30" y="116" width="26" height="290" fill="#fafafa"/><text x="43" y="110" text-anchor="middle" fill="#fafafa" font-size="9" font-weight="700">200</text>
+  <text x="28" y="440" text-anchor="middle" class="n">Alphan.</text><text x="28" y="468" text-anchor="middle" fill="#10b981" font-size="9" font-weight="700">1.06×</text>
+</g>
+<line x1="36" y1="490" x2="864" y2="490" stroke="#1f1f23"/>
+<text x="36" y="508" class="s">Lower = fewer tokens = cheaper · Pipeline: raw → AICL (48k dict) → BPE (249 merges, 2–5 PUA/token) · 131/131 pass</text>
 </svg>
