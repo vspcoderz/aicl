@@ -18,7 +18,7 @@
   --hm-lit:#9333ea;
 }
 *{box-sizing:border-box}
-html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:'Stack Sans Notch','Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
 .mono{font-family:'JetBrains Mono',ui-monospace,monospace}
 .bg{position:fixed;inset:0;pointer-events:none;background:
   radial-gradient(700px 420px at 12% -8%, rgba(255,255,255,.08), transparent 60%),
@@ -46,12 +46,12 @@ html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:
 .card-head h2{margin:0;font-size:13px;letter-spacing:.04em;text-transform:uppercase;color:#e4e4e7}
 .muted{color:var(--muted);font-size:12px}
 .small{font-size:11px}
-.select,.btn{font:500 12px 'Inter',sans-serif;padding:8px 10px;border-radius:10px;border:1px solid var(--border);background:#0f0f12;color:var(--text);cursor:pointer}
+.select,.btn{font:500 12px 'Stack Sans Notch','Inter',sans-serif;padding:8px 10px;border-radius:10px;border:1px solid var(--border);background:#0f0f12;color:var(--text);cursor:pointer}
 .btn.ghost{background:transparent}
 .btn:active{transform:translateY(1px)}
 .btn.small{padding:5px 8px;font-size:11px;border-radius:8px}
 .head-actions{display:flex;gap:8px}
-textarea#input{width:100%;min-height:240px;resize:vertical;padding:14px 14px;border-radius:12px;border:1px solid var(--border2);background:#0c0c0f;color:var(--text);font:13px/1.6 'JetBrains Mono',monospace;transition:border-color .15s}
+textarea#input{width:100%;min-height:240px;resize:vertical;padding:14px 14px;border-radius:12px;border:1px solid var(--border2);background:#0c0c0f;color:var(--text);font:13px/1.6 'JetBrains Mono','Stack Sans Notch',monospace;transition:border-color .15s}
 textarea#input:focus{outline:none;border-color:#3f3f46;box-shadow:0 0 0 3px rgba(255,255,255,.06)}
 .drop-zone{position:relative;border-radius:12px;transition:border-color .2s}
 .drop-zone.drag-over textarea{border-color:var(--ok);box-shadow:0 0 0 3px rgba(16,185,129,.15)}

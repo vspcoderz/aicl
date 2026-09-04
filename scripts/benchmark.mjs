@@ -35,7 +35,7 @@ console.log(`vocab ${vocab.numMerges} merges maxLen=${vocab.maxTokenLength}`);
 // ── helpers — minimal professional palette ──
 const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 const W = 900;
-const PALETTE = { bg:'#0a0a0a', grid:'#1f1f23', gpt3:'#71717a', gpt4:'#52525b', gpt4o:'#3f3f46', gpt5:'#27272a', llama:'#a1a1aa', aicl:'#fafafa' };
+const PALETTE = { bg:'#ffffff', grid:'#e5e7eb', gpt3:'#71717a', gpt4:'#52525b', gpt4o:'#3f3f46', gpt5:'#27272a', llama:'#a1a1aa', aicl:'#18181b' };
 
 function barRect(x, y, w, h, fill, rx = 4, extra='') {
   return `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${rx}" fill="${fill}" ${extra}/>`;
@@ -59,14 +59,14 @@ function barRect(x, y, w, h, fill, rx = 4, extra='') {
     const aY = bottom - aH;
     const label1 = r.name === 'Common English' ? ['Common','English'] : r.name === 'API' ? ['API','response'] : r.name === 'Prompt' ? ['Prompt'] : [r.name];
     const win = r.win;
-    const winColor = win >= 2 ? '#10b981' : win >= 1.2 ? '#a3e635' : '#eab308';
+    const winColor = win >= 2 ? '#059669' : win >= 1.2 ? '#65a30d' : '#d97706';
     groups += `
   <g>
-    ${barRect(x+8, gY, 28, gH, '#27272a', 4, 'opacity="0.85"')}
-    <text x="${x+22}" y="${gY-8}" text-anchor="middle" fill="#9ca3af" font-size="9" font-weight="600">${r.gpt4o}</text>
+    ${barRect(x+8, gY, 28, gH, '#d1d5db', 4, 'opacity="0.85"')}
+    <text x="${x+22}" y="${gY-8}" text-anchor="middle" fill="#6b7280" font-size="9" font-weight="600">${r.gpt4o}</text>
     ${barRect(x+44, aY, 28, aH, PALETTE.aicl, 4, '')}
-    <text x="${x+58}" y="${aY-8}" text-anchor="middle" fill="#fafafa" font-size="9" font-weight="700">${r.aicl}</text>
-    ${label1.map((l, idx) => `<text x="${x+40}" y="${410+idx*12}" text-anchor="middle" font-size="10" font-weight="600" fill="#e5e7eb">${esc(l)}</text>`).join('')}
+    <text x="${x+58}" y="${aY-8}" text-anchor="middle" fill="#111827" font-size="9" font-weight="700">${r.aicl}</text>
+    ${label1.map((l, idx) => `<text x="${x+40}" y="${410+idx*12}" text-anchor="middle" font-size="10" font-weight="600" fill="#374151">${esc(l)}</text>`).join('')}
     <text x="${x+40}" y="440" text-anchor="middle" fill="${winColor}" font-size="9" font-weight="700">${win}×</text>
   </g>`;
   });
@@ -76,12 +76,12 @@ function barRect(x, y, w, h, fill, rx = 4, extra='') {
     return {v,y};
   });
   const svg = `<svg width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg">
-<style>.t{font:700 17px 'Inter',system-ui,sans-serif;fill:#f9fafb;letter-spacing:-0.3px}.s{font:400 11px 'Inter',system-ui,sans-serif;fill:#9ca3af}.n{font:600 10px 'Inter',system-ui,sans-serif;fill:#e5e7eb}.a{font:400 9px 'Inter',system-ui,sans-serif;fill:#6b7280}</style>
+<style>.t{font:700 17px 'Stack Sans Notch','Inter',system-ui,sans-serif;fill:#111827;letter-spacing:-0.3px}.s{font:400 11px 'Stack Sans Notch','Inter',system-ui,sans-serif;fill:#6b7280}.n{font:600 10px 'Stack Sans Notch','Inter',system-ui,sans-serif;fill:#1f2937}.a{font:400 9px 'Stack Sans Notch','Inter',system-ui,sans-serif;fill:#9ca3af}</style>
 <rect width="${W}" height="${H}" rx="16" fill="${PALETTE.bg}"/>
 <text x="32" y="34" class="t">AICL vs GPT-4o — tokens (lower is better)</text>
 <text x="32" y="52" class="s">2–5 PUA → 1 token · ${vocab.numMerges} merges · max 5 PUA/token · 8 tests · 131/131 pass</text>
 <g transform="translate(32,66)">
-  <rect x="0" y="0" width="10" height="10" rx="2" fill="#27272a"/><text x="14" y="9" class="s">GPT-4o (o200k_base)</text>
+  <rect x="0" y="0" width="10" height="10" rx="2" fill="#3f3f46"/><text x="14" y="9" class="s">GPT-4o (o200k_base)</text>
   <rect x="140" y="0" width="10" height="10" rx="2" fill="${PALETTE.aicl}"/><text x="154" y="9" class="s">AICLTokenizer</text>
 </g>
 <g stroke="${PALETTE.grid}" stroke-width="1">
@@ -131,11 +131,11 @@ ${groups}
     ${bars}
     <text x="${x+groupW/2}" y="500" text-anchor="middle" class="n">${esc(short)}</text>
     ${r.name==='Common English'?`<text x="${x+groupW/2}" y="512" text-anchor="middle" class="n">Eng</text>`:''}
-    <text x="${x+groupW/2}" y="530" text-anchor="middle" fill="#a78bfa" font-size="7" font-weight="700">${win}×</text>
+    <text x="${x+groupW/2}" y="530" text-anchor="middle" fill="#7c3aed" font-size="7" font-weight="700">${win}×</text>
   </g>`;
   });
   const svg2 = `<svg width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg">
-<style>.t{font:700 17px 'Inter',system-ui,sans-serif;fill:#f9fafb;letter-spacing:-0.3px}.s{font:400 11px 'Inter',system-ui,sans-serif;fill:#9ca3af}.n{font:600 9px 'Inter',system-ui,sans-serif;fill:#e5e7eb}.a{font:400 8px 'Inter',system-ui,sans-serif;fill:#6b7280}</style>
+<style>.t{font:700 17px 'Stack Sans Notch','Inter',system-ui,sans-serif;fill:#111827;letter-spacing:-0.3px}.s{font:400 11px 'Stack Sans Notch','Inter',system-ui,sans-serif;fill:#6b7280}.n{font:600 9px 'Stack Sans Notch','Inter',system-ui,sans-serif;fill:#1f2937}.a{font:400 8px 'Stack Sans Notch','Inter',system-ui,sans-serif;fill:#9ca3af}</style>
 <rect width="${W}" height="${H}" rx="16" fill="${PALETTE.bg}"/>
 <text x="32" y="34" class="t">AICL vs All Tokenizers — 8 tests</text>
 <text x="32" y="52" class="s">tokens — lower is better · GPT-3/4/4o/5 + LLaMA 2 + AICL (${vocab.numMerges} merges, 2–5 PUA → 1 token)</text>
@@ -145,7 +145,7 @@ ${groups}
   <rect x="112" y="0" width="10" height="10" rx="2" fill="${PALETTE.gpt4o}"/><text x="126" y="9" class="s">GPT-4o</text>
   <rect x="172" y="0" width="10" height="10" rx="2" fill="${PALETTE.gpt5}"/><text x="186" y="9" class="s">GPT-5</text>
   <rect x="226" y="0" width="10" height="10" rx="2" fill="${PALETTE.llama}"/><text x="240" y="9" class="s">LLaMA2</text>
-  <rect x="296" y="0" width="10" height="10" rx="2" fill="${PALETTE.aicl}" stroke="#e5e7eb" stroke-width="0.5"/><text x="310" y="9" class="s">AICL</text>
+  <rect x="296" y="0" width="10" height="10" rx="2" fill="${PALETTE.aicl}" stroke="#d1d5db" stroke-width="0.5"/><text x="310" y="9" class="s">AICL</text>
 </g>
 <g stroke="${PALETTE.grid}" stroke-width="1">
   ${[top, top+chartH*0.25, top+chartH*0.5, top+chartH*0.75, bottom].map(y=>`<line x1="52" y1="${y}" x2="860" y2="${y}"/>`).join('')}
@@ -157,7 +157,7 @@ ${[0,0.25,0.5,0.75,1].map(f=>{
 }).join('')}
 ${groups}
 <line x1="32" y1="520" x2="868" y2="520" stroke="${PALETTE.grid}"/>
-<text x="32" y="540" class="s">AICL wins 8/8 — best: Code 4.00×, API 3.84×, Markdown 3.31×, Paths 3.13× · Lower = cheaper</text>
+<text x="32" y="540" class="s">AICL wins 8/8 — best: Code 4.50×, API 3.84×, Shell 3.46×, Markdown 3.07× · Lower = cheaper</text>
 <text x="32" y="558" class="s">github.com/vspcoderz/aicl · 131/131 pass · 8 tests · 6 tokenizers</text>
 </svg>`;
   writeFileSync('assets/benchmark-all.svg', svg2);
