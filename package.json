@@ -1,0 +1,21 @@
+{
+  "name": "aicl",
+  "version": "2.0.0",
+  "description": "AICL - Massive Static Dictionary Compression with Vision Layer",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "generate": "node dict/generate.js",
+    "test": "node test/test.js",
+    "bench": "node test/bench.js"
+  },
+  "keywords": [
+    "compression",
+    "unicode",
+    "dictionary",
+    "bpe",
+    "text-compression"
+  ],
+  "author": "",
+  "license": "MIT"
+}

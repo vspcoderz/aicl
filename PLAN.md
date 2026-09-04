@@ -1,138 +1,188 @@
-# AICL v2 - Static Dictionary + BPE Phrase Rewrite
+# AICL v2 — AI Compressed Language
 
 ## Goal
 
-Create a simple, no-training-needed compression system:
-1. **Layer 1**: Static dictionary maps common English words + code tokens to Unicode symbols
-2. **Layer 2**: BPE phrase merge handles remaining patterns
+Build a two-stage text compression pipeline for AI models:
+
+```
+English/Code → [Dict Encoder] → AICL text (PUA symbols)
+                                        ↓
+                              [AICL Tokenizer] → token IDs → AI model
+```
+
+**Why this works**: Standard tokenizers (BPE/WordPiece) waste tokens on PUA characters because they never saw them in training. A tokenizer *designed for AICL* guarantees 1 token per PUA symbol + merges frequent symbol pairs.
+
+**Target**: 60-80% fewer tokens than raw English.
 
 ## Architecture
 
 ```
-English text
-    │
-    ▼
-┌─────────────────────────────┐
-│ Layer 1: Static Dict        │  " the " → "𐂀", " is " → "𐂁"
-│ (hardcoded ~400 entries)    │  Works out of the box, no training
-└─────────────────────────────┘
-    │
-    ▼
-┌─────────────────────────────┐
-│ Layer 2: BPE Phrase Merge   │  "language model" → "𐃀"
-│ (optional, from corpus)     │  Adds extra compression
-└─────────────────────────────┘
-    │
-    ▼
-AICL text (fewer tokens)
+┌─────────────────────┐
+│ 1. Dictionary        │  51,801 entries mapping patterns → PUA symbols
+│    Encoder           │  3-tier: longest-match → base+modifier → literal
+└──────────┬──────────┘
+           │ AICL text (PUA chars)
+           ▼
+┌─────────────────────┐
+│ 2. AICL Tokenizer   │  custom BPE trained on AICL text
+│    (trainable)       │  merges frequent PUA pairs → single tokens
+└──────────┬──────────┘
+           │ token IDs (integers)
+           ▼
+┌─────────────────────┐
+│ Send to AI model    │  fewer tokens = lower cost + faster inference
+└─────────────────────┘
 ```
 
-## Unicode Symbol Pool
+## Compression Results
 
-Using these ranges (from user-provided list):
-- PUA: 𐂀-𐂿, 𐃀-𐃿 (896 chars)
-- Old Italic: 𐌀-𐌟 (24 chars)
-- Gothic: 𐌰-𐍿 (27 chars)
-- Cuneiform: 𒀀-𒎏 (300+ chars)
-- Egyptian Hieroglyphs: 𓀀-𿿿 (1000+ chars)
-- And more from the provided pool
+### Stage 1: Dictionary Encoder (v6 — 51k expanded dictionary)
 
-## Static Dictionary Design
+| Input Type | Chars In | Chars Out | Ratio |
+|---|---|---|---|
+| Code (const/let patterns) | 140 | 34 | **4.12x** |
+| Git commands | 61 | 16 | **3.81x** |
+| Common English prose | 154 | 50 | **3.08x** |
+| Markdown full (with code) | 229 | 79 | **2.90x** |
+| Test sentence (97 chars) | 97 | 34 | **2.85x** |
+| SQL queries | 272 | 99 | **2.75x** |
+| Markdown | 169 | 64 | **2.64x** |
+| Shell commands | 258 | 110 | **2.35x** |
+| Operator soup | 218 | 95 | **2.29x** |
+| Paths/URLs | 235 | 117 | **2.01x** |
+| Code snippets | 232 | 120 | **1.93x** |
+| API response | 193 | 101 | **1.91x** |
+| Perl/Crypto | 260 | 138 | **1.88x** |
+| Hex/Binary/Oct | 153 | 88 | **1.74x** |
+| Repeating chars | 179 | 110 | **1.63x** |
+| JSON/XML/HTML | 219 | 144 | **1.52x** |
+| Mixed symbols | 148 | 103 | **1.44x** |
+| Alphanumeric random | 288 | 216 | 1.33x |
+| Brackets chain | 72 | 54 | 1.33x |
+| **Overall diverse corpus** | **3,577** | **1,772** | **2.02x** |
 
-### English Words (~250 entries)
-Most frequent English words with space context:
-```
-" the " → "𐂀"    " is "  → "𐂁"    " an "  → "𐂂"
-" a "   → "𐂃"    " and " → "𐂄"    " that "→ "𐂅"
-" this "→ "𐂆"    " for " → "𐂇"    " was " → "𐂈"
-" on "  → "𐂉"    " are " → "𐂊"    " with "→ "𐂋"
-" they "→ "𐂌"    " be "  → "𐂍"    " at "  → "𐂎"
-```
+### Stage 2: AICL Tokenizer (BPE)
 
-### Code Tokens (~100 entries)
-Programming keywords and operators:
-```
-"function " → "𐃀"    " const "  → "𐃁"    " return " → "𐃂"
-" import "  → "𐃃"    " export " → "𐃄"    " async "  → "𐃅"
-" await "   → "𐃆"    " this."   → "𐃇"    " ==="     → "𐃈"
-```
+| Stage | Input | Output | Ratio |
+|-------|-------|--------|-------|
+| Dict Encoder | 817 chars (AI corpus) | 398 AICL chars | 2.05x |
+| AICL Tokenizer | 398 AICL chars | 307 token IDs | 1.30x |
+| **Total** | 817 chars | 307 tokens | **2.66x** |
 
-## File Structure
+## Files
 
 ```
 aicl/
-├── PLAN.md           # This file
-├── package.json      # Project config
-├── src/
-│   ├── index.js      # Public API
-│   ├── dict.js       # Static dictionary loader
-│   ├── unicode.js    # Symbol pool
-│   ├── encoder.js    # Two-layer DP encoder
-│   ├── decoder.js    # Lossless decoder
-│   └── cli.js        # CLI interface
+├── PLAN.md
+├── package.json
 ├── dict/
-│   ├── english.json  # Common English words
-│   └── code.json     # Code tokens
+│   ├── generate.js          # dictionary generator v4 (51k entries, expanded fragments)
+│   ├── english.json         # 48,712 English entries (47k words + single letters + fragments)
+│   ├── code.json            # 2,048 code patterns (max PUA-A range)
+│   ├── symbols.json         # 1,024 phrase/markdown/symbol patterns
+│   ├── modifiers.json       # 17 modifier symbols (MOD_CAPS, MOD_TRAIL_*, MOD_LEAD_*)
+│   └── wordlists/
+│       └── english.txt      # Google 10k English word list (source)
+├── src/
+│   ├── unicode.js           # PUA constants, escape marker, char helpers
+│   ├── dict.js              # load + merge dictionaries + modifiers, build lookup
+│   ├── encoder.js           # text → AICL (3-tier: longest-match → base+modifier → literal)
+│   ├── decoder.js           # AICL → text (buffer-based modifier application)
+│   ├── stats.js             # compression metrics
+│   ├── vision.js            # ANSI color-coded output + step-by-step
+│   ├── index.js             # public API (exports all modules + modifier helpers)
+│   ├── cli.js               # CLI (encode/decode/stats/train/tok/visual)
+│   └── tokenizer/
+│       └── index.js         # AICL text ↔ token IDs (custom BPE, string pair keys)
+├── tokenizer/
+│   └── vocab.json           # trained tokenizer vocabulary + merges
 └── test/
-    └── test.js       # Roundtrip tests
+    └── test.js              # 131/131 passing (roundtrip + modifier + tokenizer)
 ```
 
-## Encoder Algorithm
+## Core Algorithms
+
+### Encoder (3-tier)
 
 ```
 encode(text):
-  1. Find all static dict matches (longest-first)
-  2. Build segments: [matched-symbol] [ascii-chunk] [matched-symbol] ...
-  3. For each ascii-chunk:
-     a. Optionally run BPE phrase merge
-     b. Or keep as literal
-  4. Concatenate all segments
-  5. Escape any literal symbols in output
+  1. Load all dictionaries → single map { pattern → symbol }
+  2. Sort patterns by length DESC
+  3. Scan text left-to-right:
+     a. Find longest matching pattern
+     b. If at a word start AND longest match covers < half the word:
+        - Try whole word + modifier (base + MOD_CAPS + trailing modifiers)
+        - If no whole word, try fragment matching (bigrams/trigrams/4-grams)
+        - Skip for CamelCase words (MOD_CAPS can't handle mid-word caps)
+     c. If longest match covers >= half the word → emit symbol, advance
+     d. No match → emit literal char (prefix with \uE000 if PUA), advance 1
+  4. Return concatenated AICL text
 ```
 
-## Decoder Algorithm
+### Decoder (buffer-based modifiers)
 
 ```
 decode(aicl_text):
-  1. Scan left-to-right
-  2. If char is escape marker (\uE000): next char is literal
-  3. If char is a phrase symbol: expand to phrase
-  4. If char is a static dict symbol: expand to word
-  5. Otherwise: keep literal
-  6. Concatenate result
+  1. Build reverse map { symbol → pattern } + modifierMap { symbol → transform }
+  2. Buffer holds current word being reconstructed
+  3. Scan left-to-right:
+     a. Char is \uE000 (escape) → flush buffer, next char is literal
+     b. Char is modifier → apply transform to buffer
+     c. Char is known symbol → flush buffer, start new buffer with pattern
+     d. Otherwise → flush buffer, emit char as-is
+  4. Flush remaining buffer
+  5. Return original text
+```
+
+### Modifier System
+
+17 shared modifiers at U+100800-U+100810:
+- MOD_CAPS: capitalize first letter
+- MOD_TRAIL_SPACE/COMMA/PERIOD/QUESTION/EXCL/SEMI/COLON/RPAREN/RBRACKET/RBRACE/RQUOTE
+- MOD_LEAD_SPACE/LPAREN/LBRACKET/LBRACE/LQUOTE
+
+Example: `"test."` = base("test") + MOD_TRAIL_PERIOD = 2 symbols (was 5 chars before)
+
+### AICL Tokenizer (custom BPE)
+
+```
+train(corpus):
+  1. Encode entire corpus with dict encoder → AICL text
+  2. Split AICL into code points (handle surrogate pairs)
+  3. Count frequency of each code point
+  4. Repeat N merges:
+     a. Find most frequent adjacent pair (symbol_a, symbol_b)
+     b. Assign new token ID
+     c. Add merge rule: (symbol_a, symbol_b) → new_token
+     d. Apply merge to corpus, recount
+  5. Save vocabulary + merge rules
 ```
 
 ## Key Design Decisions
 
-1. **No training required** - Static dict works immediately
-2. **Space-aware boundaries** - " the " not "the" to avoid false matches
-3. **Escape marker** - \uE000 reserved for handling literal symbols
-4. **Lossless always** - decode(encode(x)) === x guaranteed
-5. **Optional BPE layer** - Can run without it for simplicity
+1. **Escape marker**: `\uE000` (U+E000) reserved — if original text contains a PUA char, encode as `\uE000` + literal. **The dict generator starts English symbols at U+E001** so no pattern ever maps to the escape marker.
+2. **Supplementary PUA**: Code/symbol dicts use U+F0000+ (surrogate pairs in JS, 4 bytes UTF-8)
+3. **BMP PUA**: English dict uses U+E001-U+F8FF (1 char in JS, 3 bytes UTF-8)
+4. **Modifiers**: Shared transform symbols (MOD_CAPS, MOD_TRAIL_*, MOD_LEAD_*) at U+100800-U+100810. Replaces N×M variant symbols with N+17 symbols.
+5. **Fragments**: Common letter-pair/fragment symbols (bigrams, trigrams, 4-grams, mixed letter+digit) enable compression of unknown words by decomposing them.
+6. **Case-sensitive fragments**: All-caps (FF, JSON, HTTP) and CamelCase (In, Band, Get) fragments for accurate reconstruction.
+7. **Tokenizer pair keys use strings** (`"a:b"`) — integer-valued keys overflow `Number.MAX_SAFE_INTEGER` for supplementary PUA codepoints and caused corruption; string keys are collision-free
+8. **Roundtrip guaranteed**: decode(encode(x)) === x always
 
-## Implementation Order
+## Status
 
-1. Create `package.json`
-2. Create `src/unicode.js` - Symbol pool
-3. Create `dict/english.json` - English mappings
-4. Create `dict/code.json` - Code mappings
-5. Create `src/dict.js` - Load dictionaries
-6. Create `src/decoder.js` - Decode symbols → text
-7. Create `src/encoder.js` - Encode text → symbols
-8. Create `src/index.js` - Public API
-9. Create `src/cli.js` - CLI interface
-10. Create `test/test.js` - Verify lossless
-11. Run tests, fix issues
-
-## CLI Usage
-
-```bash
-# Encode text
-echo "the quick brown fox" | node src/cli.js encode
-
-# Decode AICL text
-echo "𐂀 quick brown fox" | node src/cli.js decode
-
-# Roundtrip test
-echo "hello world" | node src/cli.js roundtrip
-```
+- [x] Phase 1: Dictionary generation (72,681 → 13,229 entries with modifier system)
+- [x] Phase 2: Core library (unicode, dict, encoder, decoder, stats, vision, index)
+- [x] Phase 3: AICL tokenizer (train, tokenize, detokenize) — string pair keys, lossless
+- [x] Phase 4: CLI + tests (131/131 passing)
+- [x] Phase 5: Modifier composition system (17 shared modifiers, base+modifier encoding)
+- [x] Phase 5b: Single-letter coverage (a-z, A-Z, 0-9)
+- [x] Phase 5c: Bare word symbols (~270 high-frequency words from Google 10k)
+- [x] Phase 5d: Technical terms (~160 AI/code/tech words)
+- [x] Phase 5e: Letter-pair/fragment symbols (~360 bigrams/trigrams + mixed letter+digit)
+- [x] Phase 5f: Case-sensitive fragments (all-caps + CamelCase patterns)
+- [x] Phase 5g: Dictionary expansion to 51k entries (47k English words, 2k code patterns, 1k phrases)
+- [x] Phase 5h: Encoder smart word-based path (triggers when longest match < half word length)
+- [ ] Phase 6: Retrain BPE tokenizer on expanded dictionary output
+- [ ] Phase 7: Real-world tokenizer training (current vocab from small corpus)
+- [ ] Phase 8: Performance benchmarking (target: 10k chars < 50ms)
