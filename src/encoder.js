@@ -1,8 +1,8 @@
 /**
  * AICL Encoder — text → AICL
  *
- * Three-tier greedy scan with trie-accelerated longest-match:
- *   1. Longest-match-first via trie (O(max_len) per position, not O(dict_size))
+ * Three-tier greedy scan:
+ *   1. Longest-match-first over the merged dictionary (existing patterns)
  *   2. If longest match is a single letter in a word → base word + modifier symbols
  *   3. Literal char (escape-prefixed if it is a PUA char)
  *
@@ -11,61 +11,6 @@
 
 import { build, isModifier } from './dict.js';
 import { codePoints, isPuaCodePoint, ESCAPE_MARKER } from './unicode.js';
-
-/**
- * Build a trie from the pattern→symbol map for O(max_len) prefix matching.
- * Each node: { children: Map<char, node>, symbol: string|null, depth: number }
- */
-function buildTrie(patternToSymbol) {
-  const root = { children: new Map(), symbol: null, depth: 0 };
-  let nodeCount = 1;
-
-  for (const [pattern, symbol] of patternToSymbol) {
-    // Skip modifier names — they're not matchable text patterns
-    if (pattern.startsWith('MOD_')) continue;
-
-    let node = root;
-    for (const ch of pattern) {
-      if (!node.children.has(ch)) {
-        node.children.set(ch, { children: new Map(), symbol: null, depth: node.depth + 1 });
-        nodeCount++;
-      }
-      node = node.children.get(ch);
-    }
-    node.symbol = symbol;
-  }
-
-  return { root, nodeCount };
-}
-
-/**
- * Find the longest matching pattern starting at position i using the trie.
- * Returns [pattern, symbol] or [null, null] if no match.
- */
-function trieLongestMatch(root, chars, i) {
-  let node = root;
-  let bestPattern = null;
-  let bestSymbol = null;
-  let bestLen = 0;
-
-  for (let j = i; j < chars.length; j++) {
-    const ch = chars[j];
-    const next = node.children.get(ch);
-    if (!next) break;
-    node = next;
-    if (node.symbol) {
-      bestLen = j - i + 1;
-      bestSymbol = node.symbol;
-    }
-  }
-
-  if (bestSymbol) {
-    // Reconstruct the matched pattern string
-    const pattern = chars.slice(i, i + bestLen).join('');
-    return [pattern, bestSymbol];
-  }
-  return [null, null];
-}
 
 /**
  * Extract a bare word (letters/digits/underscore) starting at position i.
@@ -98,9 +43,6 @@ export function encode(text, opts = {}) {
   const { sortedPatterns, patternToSymbol } = build();
   const steps = opts.steps ? [] : null;
 
-  // Build trie for fast longest-match lookup
-  const trie = buildTrie(patternToSymbol);
-
   let output = '';
   let matches = 0;
   let literals = 0;
@@ -109,11 +51,27 @@ export function encode(text, opts = {}) {
   let i = 0;
 
   while (i < chars.length) {
-    // Trie-accelerated longest match — O(max_pattern_length) per position
-    const [bestPattern, bestSymbol] = trieLongestMatch(trie.root, chars, i);
-    const bestLen = bestPattern ? bestPattern.length : 0;
+    const rest = chars.slice(i).join('');
+    let matched = false;
 
-    // If longest match is a single letter, try word-based encoding
+    // Find the longest matching pattern
+    let bestPattern = null;
+    let bestSymbol = null;
+    let bestLen = 0;
+
+    for (const pattern of sortedPatterns) {
+      if (pattern.length <= rest.length && rest.startsWith(pattern)) {
+        const symbol = patternToSymbol.get(pattern);
+        if (pattern.length > bestLen) {
+          bestPattern = pattern;
+          bestSymbol = symbol;
+          bestLen = pattern.length;
+        }
+        break; // sorted longest-first, so first match is longest
+      }
+    }
+
+    // If longest match is a single letter, try fragments before falling back
     if (bestLen === 1) {
       const word = extractWord(chars, i);
 
@@ -165,12 +123,12 @@ export function encode(text, opts = {}) {
           for (const frag of sortedPatterns) {
             const fragLen = frag.length;
             if (fragLen < 2 || fragLen > 4) continue;
-            if (fragLen > lower.length - fragI) continue; // too long
-            if (fragLen < bestFragLen) break; // sorted by length desc, no better match possible
-            if (lower.startsWith(frag, fragI)) {
-              bestFrag = frag;
-              bestFragLen = fragLen;
-              break; // longest-first, first match wins
+            if (fragLen <= lower.length - fragI && lower.startsWith(frag, fragI)) {
+              if (fragLen > bestFragLen) {
+                bestFrag = frag;
+                bestFragLen = fragLen;
+              }
+              break;
             }
           }
           if (bestFrag) {
@@ -219,7 +177,7 @@ export function encode(text, opts = {}) {
       }
     }
 
-    // Use the longest matching pattern from trie
+    // Use the longest matching pattern
     if (bestPattern) {
       output += bestSymbol;
       matches++;

@@ -1880,43 +1880,16 @@ function generateSymbolDict() {
   const symbols = [
     // Punctuation with space
     ', ', '. ', '? ', '! ', '; ', ': ',
+    // Single chars that otherwise become literals (biggest waste)
+    ' ', ';', ',', '.', ':', "'", '\\', '`',
     // Quotes
-    '"', "'", '""', "''",
-    // JSON structure patterns (high-frequency)
+    '"', '""', "''",
+    // JSON structural patterns (each saves 2-4 chars)
     '": "', '", ', '":', '": ',
     '{"', '}"', '["', '"]',
     '"null"', '"true"', '"false"',
     '"name"', '"value"', '"data"', '"error"', '"status"',
-    '"id"', '"type"', '"key"', '"item"', '"items"',
-    '"count"', '"total"', '"page"', '"limit"',
-    '"message"', '"result"', '"success"',
-    '"user"', '"users"', '"task"', '"tasks"',
-    '"title"', '"desc"', '"content"',
-    '"url"', '"path"', '"method"',
-    '"created"', '"updated"', '"config"',
-    '"options"', '"settings"', '"response"', '"request"',
-    '"header"', '"headers"', '"body"', '"params"', '"query"',
-    // XML/HTML patterns
-    '<div>', '</div>', '<span>', '</span>',
-    '<p>', '</p>', '<a>', '</a>',
-    '<ul>', '</ul>', '<ol>', '</ol>', '<li>', '</li>',
-    '<table>', '</table>', '<tr>', '</tr>',
-    '<td>', '</td>', '<th>', '</th>',
-    '<form>', '</form>', '<input', '<button>',
-    '<h1>', '</h1>', '<h2>', '</h2>', '<h3>', '</h3>',
-    '<header>', '</header>', '<footer>', '</footer>',
-    '<main>', '</main>', '<nav>', '</nav>',
-    '<section>', '</section>', '<article>', '</article>',
-    '<script>', '</script>', '<style>', '</style>',
-    '<meta', '<link', '<title>', '</title>',
-    '<img', '<br', '<hr',
-    '<!-- ', ' -->', '<!DOCTYPE',
-    'xmlns="', 'viewBox="', 'class="', 'style="',
-    'data-', 'aria-', 'role="',
-    'src="', 'href="', 'alt="', 'title="',
-    'type="', 'name="', 'value="', 'placeholder="',
-    'action="', 'method="', 'target="', 'rel="',
-    'width="', 'height="', 'id="',
+    '"id"', '"type"', '"key"',
     // Brackets
     '(', ')', '[', ']', '{', '}', '<', '>',
     // Operators
