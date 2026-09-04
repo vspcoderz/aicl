@@ -7,6 +7,9 @@
   "scripts": {
     "generate": "node dict/generate.js",
     "test": "node test/test.js",
+    "test:corpus": "node test_corpus.mjs",
+    "corpus": "node scripts/build_corpus.js",
+    "benchmark": "node scripts/benchmark.mjs",
     "bench": "node test/bench.js"
   },
   "keywords": [

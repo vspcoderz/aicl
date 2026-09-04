@@ -20,13 +20,14 @@ export const ESCAPE_CP = 0xe000;
  */
 export const PUA_RANGES = {
   english: [
-    { start: 0xe000, end: 0xf8ff },                    // BMP
-    { start: 0x100800, end: 0x10ffff },                // PUA-B overflow
+    { start: 0xe001, end: 0xf8ff },
+    { start: 0x100900, end: 0x10ffff },
   ],
-  code: { start: 0xf0000, end: 0xf07ff },              // PUA-A
-  phrases: { start: 0xf0800, end: 0xf0fff },           // PUA-A
-  markdown: { start: 0x100000, end: 0x1003ff },        // PUA-B
-  symbols: { start: 0x100400, end: 0x1007ff },         // PUA-B
+  code: { start: 0xf0000, end: 0xf07ff },
+  phrases: { start: 0xf0800, end: 0xf0fff },
+  markdown: { start: 0x100000, end: 0x1003ff },
+  symbols: { start: 0x100400, end: 0x1007ff },
+  modifiers: { start: 0x100800, end: 0x1008ff },
 };
 
 /**
@@ -35,11 +36,10 @@ export const PUA_RANGES = {
  * @returns {boolean}
  */
 export function isPuaCodePoint(cp) {
-  for (const ranges of [PUA_RANGES.english, PUA_RANGES.code, PUA_RANGES.phrases, PUA_RANGES.markdown, PUA_RANGES.symbols]) {
+  if (cp === ESCAPE_CP) return true;
+  for (const ranges of Object.values(PUA_RANGES)) {
     const list = Array.isArray(ranges) ? ranges : [ranges];
-    for (const r of list) {
-      if (cp >= r.start && cp <= r.end) return true;
-    }
+    for (const r of list) if (cp >= r.start && cp <= r.end) return true;
   }
   return false;
 }

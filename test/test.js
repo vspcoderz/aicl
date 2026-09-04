@@ -7,13 +7,13 @@
  *   Combined: raw -> AICL -> tokens -> AICL -> raw must be lossless
  *   Escape-marker integrity
  */
-import { encode } from '/home/vspcoderz/Projects/aicl/src/encoder.js';
-import { decode } from '/home/vspcoderz/Projects/aicl/src/decoder.js';
-import { build } from '/home/vspcoderz/Projects/aicl/src/dict.js';
-import { ESCAPE_MARKER, isPuaCodePoint } from '/home/vspcoderz/Projects/aicl/src/unicode.js';
+import { encode } from '../src/encoder.js';
+import { decode } from '../src/decoder.js';
+import { build } from '../src/dict.js';
+import { ESCAPE_MARKER, isPuaCodePoint } from '../src/unicode.js';
 import {
   trainTokenizer, tokenize, detokenize,
-} from '/home/vspcoderz/Projects/aicl/src/tokenizer/index.js';
+} from '../src/tokenizer/index.js';
 
 let pass = 0, fail = 0;
 function check(name, cond) {

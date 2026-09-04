@@ -44,7 +44,6 @@ function punctuationToModifier(ch){
   return m[ch]||null;
 }
 function charCount(s){ return [...s].length; }
-function charCountOf(s){ return [...s].length; }
 
 let trieCache=null;
 function getTrie(patternToSymbol){

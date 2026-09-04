@@ -28,5 +28,4 @@ export {
   hex,
 } from './unicode.js';
 
-// Tokenizer is coupled to a trained vocab; re-export the lazy loader.
-export { tokenize, detokenize, loadTokenizer, trainTokenizer } from './tokenizer/index.js';
+export { tokenize, detokenize, loadTokenizer, trainTokenizer, VOCAB_PATH, CP_BASE } from './tokenizer/index.js';
