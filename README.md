@@ -2,6 +2,10 @@
 
 A two-stage text compression system designed specifically for AI models. Compress English, code, and structured text into fewer tokens for cheaper, faster inference.
 
+<p align="center">
+  <img src="assets/benchmark.png" width="800" alt="AICL vs GPT-4o Benchmark"/>
+</p>
+
 ```
 Text → [Dict Encoder] → AICL (PUA symbols) → [AICL Tokenizer] → Token IDs → AI Model
 ```

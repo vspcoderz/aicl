@@ -1,0 +1,68 @@
+<svg width="900" height="560" xmlns="http://www.w3.org/2000/svg">
+<style>
+  .t { font: 700 20px 'Inter', system-ui, sans-serif; fill: #f9fafb; letter-spacing: -0.4px; }
+  .s { font: 400 11.5px 'Inter', system-ui, sans-serif; fill: #9ca3af; letter-spacing: 0.2px; }
+  .n { font: 500 12.5px 'Inter', system-ui, sans-serif; fill: #e5e7eb; }
+  .v { font: 600 11px 'Inter', system-ui, sans-serif; fill: #0a0a0a; }
+  .vg { font: 600 10px 'Inter', system-ui, sans-serif; fill: #9ca3af; }
+  .a { font: 400 10px 'Inter', system-ui, sans-serif; fill: #6b7280; }
+</style>
+<rect width="900" height="560" rx="16" fill="#0a0a0a"/>
+<!-- header -->
+<text x="36" y="46" class="t">AICLTokenizer vs GPT-4o</text>
+<text x="36" y="66" class="s">chars per token · higher = fewer tokens · 2–5 PUA → 1 token · 249 merges</text>
+<!-- legend -->
+<circle cx="36" cy="84" r="4.5" fill="#27272a" stroke="#3f3f46" stroke-width="1"/><text x="48" y="88" class="s">GPT-4o</text>
+<circle cx="108" cy="84" r="4.5" fill="#fafafa"/><text x="120" y="88" class="s">AICLTokenizer</text>
+<text x="720" y="88" class="s">+ up to <tspan fill="#fafafa" font-weight="700">4× fewer tokens</tspan></text>
+
+<!-- grid -->
+<g stroke="#1f1f23" stroke-width="1">
+  <line x1="180" y1="102" x2="180" y2="418"/>
+  <line x1="310" y1="102" x2="310" y2="418"/>
+  <line x1="440" y1="102" x2="440" y2="418"/>
+  <line x1="570" y1="102" x2="570" y2="418"/>
+  <line x1="700" y1="102" x2="700" y2="418"/>
+  <line x1="830" y1="102" x2="830" y2="418"/>
+</g>
+<text x="180" y="436" class="a" text-anchor="middle">0</text>
+<text x="310" y="436" class="a" text-anchor="middle">4</text>
+<text x="440" y="436" class="a" text-anchor="middle">8</text>
+<text x="570" y="436" class="a" text-anchor="middle">12</text>
+<text x="700" y="436" class="a" text-anchor="middle">16</text>
+
+<!-- Common English: GPT 4.81, AICL 6.16 -->
+<text x="36" y="122" class="n">Common English</text>
+<rect x="180" y="107" width="156" height="13" rx="7" fill="#27272a"/><text x="188" y="117" class="vg">4.81</text>
+<rect x="180" y="127" width="200" height="13" rx="7" fill="#fafafa"/><text x="188" y="137" class="v">6.16 · 1.28×</text>
+
+<!-- Code: GPT 3.89, AICL 15.56 -->
+<text x="36" y="172" class="n">Code</text>
+<rect x="180" y="157" width="126" height="13" rx="7" fill="#27272a"/><text x="188" y="167" class="vg">3.89</text>
+<rect x="180" y="177" width="505" height="13" rx="7" fill="#fafafa"/><text x="188" y="187" class="v">15.56 · 4.00×</text>
+
+<!-- SQL: GPT 3.57, AICL 4.26 -->
+<text x="36" y="222" class="n">SQL</text>
+<rect x="180" y="207" width="116" height="13" rx="7" fill="#27272a"/><text x="188" y="217" class="vg">3.57</text>
+<rect x="180" y="227" width="138" height="13" rx="7" fill="#fafafa"/><text x="188" y="237" class="v">4.26 · 1.19×</text>
+
+<!-- API: GPT 2.64, AICL 10.16 -->
+<text x="36" y="272" class="n">API response</text>
+<rect x="180" y="257" width="86" height="13" rx="7" fill="#27272a"/><text x="188" y="267" class="vg">2.64</text>
+<rect x="180" y="277" width="330" height="13" rx="7" fill="#fafafa"/><text x="188" y="287" class="v">10.16 · 3.85×</text>
+
+<!-- Normal Prompt: GPT 2.61, AICL 2.77 -->
+<text x="36" y="322" class="n">Normal Prompt</text>
+<rect x="180" y="307" width="85" height="13" rx="7" fill="#27272a"/><text x="188" y="317" class="vg">2.61</text>
+<rect x="180" y="327" width="90" height="13" rx="7" fill="#fafafa"/><text x="188" y="337" class="v">2.77 · 1.06×</text>
+
+<!-- Alphanumeric: GPT 1.36, AICL 1.44 -->
+<text x="36" y="372" class="n">Alphanumeric</text>
+<rect x="180" y="357" width="44" height="13" rx="7" fill="#27272a"/><text x="188" y="367" class="vg">1.36</text>
+<rect x="180" y="377" width="47" height="13" rx="7" fill="#fafafa"/><text x="188" y="387" class="v">1.44 · 1.06×</text>
+
+<!-- divider -->
+<line x1="36" y1="470" x2="864" y2="470" stroke="#1f1f23"/>
+<text x="36" y="490" class="s">Pipeline: raw → AICL (48k dict) → BPE (249 merges, 2–5 PUA/token) · 131/131 pass · github.com/vspcoderz/aicl</text>
+<text x="36" y="508" class="s">1 token = 9–22 chars vs GPT-4o 4 chars</text>
+</svg>
