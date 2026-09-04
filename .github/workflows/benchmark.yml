@@ -18,7 +18,7 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
-      - run: npm ci
+      - run: npm install
       - run: sudo apt-get update && sudo apt-get install -y imagemagick
       - run: node test/test.js
       - run: node test_corpus.mjs | tee bench-stage1.txt
