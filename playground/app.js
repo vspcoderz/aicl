@@ -168,13 +168,7 @@ async function run() {
   const useSteps = elToggleSteps.checked;
   const useHeatmap = elToggleHeatmap.checked;
   elCharCount.textContent = `${[...text].length} chars · ${words(text)} words`;
-
-  // Raw input — token-colored or plain
-  if (useHeatmap && data.pipeline.rawToAicl && data.pipeline.tokenMap) {
-    elPipeRaw.innerHTML = rawTokenColoredSpans(text, data.pipeline.rawToAicl, data.pipeline.tokenMap);
-  } else {
-    elPipeRaw.textContent = text || '—';
-  }
+  elPipeRaw.textContent = text || '—';
 
   if (!text) {
     elStatus.textContent = 'waiting…';
@@ -283,6 +277,14 @@ function render(data, hex, useSteps, useHeatmap) {
     elHeatmapLegend.style.display = 'none';
   }
   elPipeAiclMeta.textContent = `${pipeline.aiclLen} PUA chars · ${pipeline.matches} matches · ${pipeline.literals} literals`;
+
+  // Raw input — token-colored or plain
+  const text = elInput.value;
+  if (useHeatmap && pipeline.rawToAicl && pipeline.tokenMap) {
+    elPipeRaw.innerHTML = rawTokenColoredSpans(text, pipeline.rawToAicl, pipeline.tokenMap);
+  } else {
+    elPipeRaw.textContent = text || '—';
+  }
 
   // Tokens
   const ids = pipeline.tokenIds;
