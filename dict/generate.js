@@ -1891,6 +1891,12 @@ function generateSymbolDict() {
     '"null"', '"true"', '"false"',
     '"name"', '"value"', '"data"', '"error"', '"status"',
     '"id"', '"type"', '"key"',
+    // Shell patterns (fix 0.79x loss)
+    ' | ', ' | grep ', ' && ', ' || ', 'sudo ', 'git ', 'npm ', 'ls -la', 'cat ', 'echo "', 'python3 ', 'node -e ',
+    // Path patterns (fix 0.63x loss)
+    'C:\\', 'D:\\', '/usr/', '/tmp/', '~/.config/', 'https://', 'ftp://', 'git@', '.txt', '.exe', '.conf', '.js', '.log', '?a=1', '&b=2', '../../', './',
+    // Markdown patterns (fix 0.72x loss)
+    '**bold**', '*italic*', '[link]', '> quote', '---', '### ',
     // Brackets
     '(', ')', '[', ']', '{', '}', '<', '>',
     // Operators
