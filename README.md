@@ -1,159 +1,165 @@
-# AICL — AI Compressed Language
+<div align="center">
 
-A two-stage text compression system designed specifically for AI models. Compress English, code, and structured text into fewer tokens for cheaper, faster inference.
+# AICL — AI Compression Language
 
-<p align="center">
-  <img src="assets/benchmark.png" width="800" alt="AICL vs GPT-4o Benchmark"/>
-</p>
+**2–5 PUA → 1 token · 48k dictionary · Up to 4× fewer tokens than GPT-4o**
+
+*Compress English, code, and structured text for cheaper, faster AI inference.*
+
+[![Tests](https://img.shields.io/badge/tests-131%2F131_passing-brightgreen)](#test-suite)
+[![License](https://img.shields.io/badge/license-MIT-black)](#license)
+[![Tokenizer](https://img.shields.io/badge/tokenizer-BPE_2--5_PUA-blue)](#aicltokenizer)
+[![Stage1](https://img.shields.io/badge/Stage1-2.12x-black)](#benchmarks)
 
 ```
-Text → [Dict Encoder] → AICL (PUA symbols) → [AICL Tokenizer] → Token IDs → AI Model
+Raw English → [AICL Encoder: PUA] → AICL Text → [AICLTokenizer: BPE] → Tokens → LLM
 ```
 
-## Compression Results
+</div>
+
+---
+
+<div align="center">
+  <img src="assets/benchmark.png" width="820" alt="AICL vs GPT-4o — chars per token"/>
+  <br/>
+  <sub>Stage 1 + Stage 2 · Vertical square bars · Higher = fewer tokens</sub>
+</div>
+
+<div align="center">
+  <img src="assets/benchmark-all.png" width="820" alt="AICL vs All OpenAI Tokenizers"/>
+  <br/>
+  <sub>All 5 OpenAI encodings + AICL · Square bars · Lower = cheaper</sub>
+</div>
+
+## Benchmarks
+
+### vs GPT-4o (`o200k_base`) — chars per token, higher is better
+
+| Test | GPT-4o | AICL | Win | Pipeline |
+|---|---|---|---|---|
+| **Code const/let** | 3.89 | **15.5** | **4.00×** | 140 → 33 AICL → 9 tok |
+| **API response** | 2.64 | **10.1** | **3.85×** | 193 → 78 → 19 |
+| **Common English** | 4.81 | **6.16** | **1.28×** | 154 → 50 → 25 |
+| SQL | 3.57 | **4.26** | 1.19× | 132 → 31 tok |
+| Normal Prompt | 2.61 | **2.77** | 1.06× | 133 → 65 → 48 |
+| Alphanumeric | 1.36 | 1.44 | 1.06× | random — entropy limit |
+
+### Stage 1 — Dictionary Encoder (chars → PUA)
 
 | Text Type | Ratio | Example |
 |---|---|---|
-| Code: const/let | **4.1x** | `const app = express(); app.get(...)` |
-| Git/CLI commands | **3.8x** | `git diff --stat && npm test` |
-| Common English | **3.1x** | Natural language text |
-| Markdown full | **2.9x** | Full markdown documents |
-| The Test Phase | **2.9x** | Mixed text |
-| SQL queries | **2.8x** | `SELECT * FROM users WHERE...` |
-| Markdown | **2.6x** | Headers, lists, code blocks |
-| Shell commands | **2.4x** | Terminal commands |
-| Operator soup | **2.3x** | Heavy operator usage |
-| Paths/URLs | **2.0x** | File paths and URLs |
-| Code snippets | **1.9x** | JavaScript/Python code |
-| API response | **1.9x** | JSON API responses |
-| Hex/Binary | **1.7x** | Hex/binary literals |
-| Repeating text | **1.6x** | Repeated patterns |
-| JSON/XML/HTML | **1.5x** | Structured data |
-| Mixed symbols | **1.4x** | Symbol-heavy text |
-| Alphanumeric | **1.3x** | Random alphanumeric |
-| **Overall average** | **2.0x** | Diverse corpus (19 tests) |
+| Code const/let | **4.24x** | `const app = express(); app.get(...)` |
+| Git/CLI | **3.81x** | `git diff --stat && npm test` |
+| Common English | **3.08x** | Natural language |
+| SQL | **2.72x** | `SELECT * FROM users...` |
+| Markdown full | **2.90x** | Docs + code blocks |
+| Markdown | **2.64x** | Headers, lists |
+| API response | **2.54x** | JSON |
+| Shell | **2.41x** | Terminal |
+| **Overall (19 tests)** | **2.12x** | Diverse corpus |
+
+> `>1× = win`. Structured text: 1.2–4.0× fewer tokens. Random: parity (Shannon limit).
 
 ## Quick Start
 
 ```bash
-# Install
-git clone https://github.com/vspcoderz/aicl.git
-cd aicl
+git clone https://github.com/vspcoderz/aicl && cd aicl
 npm install
 
-# Generate dictionaries
+# Generate dictionaries (48k English + 2k code)
 node dict/generate.js
 
-# Encode text
+# Encode / Decode
 node src/cli.js encode "the quick brown fox jumps over the lazy dog"
-
-# Decode back
 node src/cli.js decode "<AICL output>"
 
-# Run tests (131/131 passing)
-node test/test.js
+# Benchmark
+node test/test.js          # 131/131 passing
+node test_corpus.mjs       # 19 tests · 2.12x
+
+# Tokenize AICL (2–5 PUA → 1 token)
+node -e "import {encode} from './src/encoder.js'; import {tokenize,loadTokenizer} from './src/tokenizer/index.js'; const v=loadTokenizer(); const a=encode('hello world').output; console.log(tokenize(a,v).length)"
 ```
 
 ## How It Works
 
-### Stage 1: Dictionary Encoder
+### Stage 1 — Dictionary Encoder (PUA)
 
-Maps common patterns to single Unicode PUA (Private Use Area) symbols:
+Maps patterns → single Unicode PUA symbols:
 
-- **48,712 English words** — single letters, 47k+ frequency-sorted words, technical terms
-- **2,048 code patterns** — `console.log(`, `SELECT *`, `const`, `async`, etc.
-- **1,024 markdown/phrase patterns** — `# `, `**`, `- `, ```` ``` ````, common phrases
-- **17 shared modifiers** — `MOD_CAPS`, `MOD_TRAIL_PERIOD`, `MOD_TRAIL_SPACE`, etc.
-- **530+ fragments** — common letter pairs (`th`, `ing`, `tion`), code fragments (`src`, `ctx`), mixed patterns (`a0-z9`, `ab0-ab9`)
+- **48,712 English** — 47k frequency-sorted + single letters + technical
+- **2,048 Code** — `console.log(`, `SELECT *`, `async`, `=>`
+- **1,024 Phrases/Markdown** — `# `, `**`, `"name"`, common phrases
+- **17 Modifiers** — `MOD_CAPS`, `MOD_TRAIL_SPACE`, etc.
+- **530+ Fragments** — `th`, `ing`, `tion`, `src`, `a0-z9`
 
-The encoder uses a 3-tier approach:
-1. **Longest match first** — context patterns like `" the "` (3 chars) beat bare words
-2. **Base word + modifiers** — `"Test."` = `base("test")` + `MOD_CAPS` + `MOD_TRAIL_PERIOD`
-3. **Fragment decomposition** — unknown words broken into known fragments (`"testing"` → `"test"` + `"ing"`)
+**3-tier greedy:** Longest match → Base + modifiers (`"Test."` → `base("test")` + `MOD_CAPS` + `MOD_TRAIL_PERIOD`) → Fragment (`"testing"` → `"test"`+`"ing"`) → Literal.
 
-### Stage 2: AICL Tokenizer (BPE)
+### Stage 2 — AICLTokenizer (BPE)
 
-Custom Byte-Pair Encoding trained on AICL text:
-- Merges frequent symbol pairs into single token IDs
-- Guarantees 1 token per PUA symbol + merges frequent pairs
-- String pair keys (`"a:b"`) to avoid integer overflow with supplementary PUA codepoints
+Custom BPE **on PUA, not English** — 1 PUA = 4.5 English chars, 1 token = 2–5 PUA = **9–22 chars/token**.
+
+- `maxTokenLength: 5`, 249 merges (150 actual on 818k corpus)
+- String pair keys `"a:b"` (no int overflow on supplementary PUA)
+- Train: `scripts/build_corpus.js` → `corpus/aicl_train.txt` → `trainTokenizer(corpus, {numMerges: 3000, maxTokenLength: 5})`
 
 ## API
 
 ```javascript
-import { encode, decode, tokenize, detokenize } from './src/index.js';
+import { encode, decode } from './src/index.js';
+import { tokenize, detokenize, loadTokenizer } from './src/tokenizer/index.js';
 
-// Stage 1: Dictionary compression
-const aicl = encode("the quick brown fox");
-// aicl.output = " quick fox" (2 symbols)
-// aicl.charsIn = 19, aicl.charsOut = 2, ratio = 9.5x
+// Stage 1: Dictionary
+const aicl = encode("the quick brown fox"); // 19 → 2 PUA, 9.5x
+decode(aicl.output).output === "the quick brown fox" // true
 
-const decoded = decode(aicl.output);
-// decoded.output = "the quick brown fox"
+// Stage 2: Tokenizer
+const vocab = loadTokenizer(); // 249 merges
+const toks = tokenize(aicl.output, vocab); // 2 PUA → 1 token
+detokenize(toks, vocab) === aicl.output // true
 
-// Stage 2: Token compression
-import { trainTokenizer } from './src/tokenizer/index.js';
-const vocab = trainTokenizer(corpus, 1000);
-const tokens = tokenize(aicl.output, vocab);
-const detok = detokenize(tokens, vocab);
-// detok === aicl.output
+// Full pipeline
+const raw = "aicl is Goated BTW, and this can reduce tokens very vary fast";
+const tokens = tokenize(encode(raw).output, vocab); // 133 → 65 → 48 tokens, 2.77x
 ```
 
-## CLI Commands
+## CLI
 
 ```bash
-# Encode text to AICL
-node src/cli.js encode "your text here"
-
-# Decode AICL back to text
-node src/cli.js decode "<AICL symbols>"
-
-# Show compression statistics
-node src/cli.js stats "your text here"
-
-# Train tokenizer on corpus
-node src/cli.js train corpus.txt
-
-# Tokenize AICL text
-node src/cli.js tok "<AICL symbols>"
-
-# Visual step-by-step encoding
-node src/cli.js visual "your text here"
+node src/cli.js encode "text"     # Text → AICL
+node src/cli.js decode "<AICL>"   # AICL → Text
+node src/cli.js stats "text"      # Raw → AICL → Tokens stats
+node src/cli.js tok "<AICL>"      # AICL → Tokens
+node src/cli.js visual "text"     # Step-by-step
 ```
 
 ## Unicode Ranges
 
 | Dictionary | Range | Count |
 |---|---|---|
-| English | `U+E001-U+F8FF` + overflow `U+100900+` | 48,712 |
+| English | `U+E001-U+F8FF` + `U+100900+` | 48,712 |
 | Code | `U+F0000-U+F07FF` | 2,048 |
 | Phrases/Symbols | `U+F0800-U+F0FFF` + `U+100000-U+1007FF` | 1,024 |
 | Modifiers | `U+100800-U+1008FF` | 17 |
-| Escape marker | `U+E000` | Reserved |
-
-## Modifier System
-
-Instead of storing 14 variants per word (` test `, ` test,`, ` test.`, etc.), AICL stores 1 base symbol + 17 shared modifiers:
-
-```
-"test."  → base("test") + MOD_TRAIL_PERIOD     = 2 symbols (was 5 chars)
-"The"    → base("the") + MOD_CAPS               = 2 symbols (was 3 chars)
-"Hello!" → base("hello") + MOD_CAPS + MOD_TRAIL_EXCL = 3 symbols (was 6 chars)
-```
-
-## Performance
-
-- **Dictionary size**: 855 KB (all JSON files)
-- **Encoding**: O(n × m) where n = text length, m = longest pattern
-- **Decoding**: O(n) single pass with buffer
+| Escape | `U+E000` | Reserved |
 
 ## Test Suite
 
 ```bash
-node test/test.js          # 131/131 passing
-node test_corpus.mjs       # 19 diverse compression tests
+node test/test.js        # 131/131 passing
+node test_corpus.mjs     # 19 tests · 2.12x Stage1
+```
+
+## Assets
+
+```
+assets/
+  benchmark.png      # GPT-4o vs AICL (vertical square)
+  benchmark.svg
+  benchmark-all.png  # All 5 OpenAI + AICL (colorful vertical)
+  benchmark-all.svg
 ```
 
 ## License
 
-MIT
+MIT — github.com/vspcoderz/aicl
