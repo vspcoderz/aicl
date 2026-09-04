@@ -13,6 +13,64 @@ export const ESCAPE_MARKER = '\uE000';
 /** Code point of the escape marker. */
 export const ESCAPE_CP = 0xe000;
 
+/** Max input size for encode/decode/tokenizer (code points). */
+export const MAX_INPUT_CHARS = 1_000_000;
+
+/** Max request body for playground API (bytes). */
+export const MAX_BODY_BYTES = 2_000_000;
+
+/**
+ * Validate that `value` is a string and within size bounds.
+ * Throws TypeError / RangeError with a clear message.
+ * @param {unknown} value
+ * @param {string} label param name for error messages
+ * @param {number} [limit] max code points (default MAX_INPUT_CHARS)
+ * @returns {string} the same string if valid
+ */
+export function requireText(value, label = 'text', limit = MAX_INPUT_CHARS) {
+  if (typeof value !== 'string') throw new TypeError(`${label} must be a string, got ${typeof value}`);
+  const len = Array.from(value).length;
+  if (len > limit) throw new RangeError(`${label} too large: ${len} chars > ${limit} limit`);
+  return value;
+}
+
+/**
+ * Inspect control / surrogate anomalies in a string.
+ * Does NOT mutate — callers decide whether to reject or sanitize.
+ * @param {string} s
+ * @returns {{ hasControl: boolean, hasSurrogate: boolean, hasNull: boolean }}
+ */
+export function inspectText(s) {
+  let hasControl = false, hasSurrogate = false, hasNull = false;
+  for (const ch of s) {
+    const cp = ch.codePointAt(0);
+    if (cp === 0) hasNull = true;
+    if (cp >= 0xd800 && cp <= 0xdfff) hasSurrogate = true;
+    else if (cp < 0x20 && cp !== 0x09 && cp !== 0x0a && cp !== 0x0d) hasControl = true;
+    else if (cp === 0x7f) hasControl = true;
+  }
+  return { hasControl, hasSurrogate, hasNull };
+}
+
+/**
+ * Boundary sanitizer for untrusted inputs (e.g. playground HTTP body).
+ * Strips C0 controls 0x00–0x1F (except \t \n \r), DEL 0x7F, and lone surrogates.
+ * Returns a cleaned copy; valid text is unchanged.
+ * @param {string} s
+ * @returns {string}
+ */
+export function sanitizeText(s) {
+  let out = '';
+  for (const ch of s) {
+    const cp = ch.codePointAt(0);
+    if (cp === 0x09 || cp === 0x0a || cp === 0x0d) { out += ch; continue; }
+    if (cp < 0x20 || cp === 0x7f) continue;
+    if (cp >= 0xd800 && cp <= 0xdfff) continue;
+    out += ch;
+  }
+  return out;
+}
+
 /**
  * The PUA ranges used across dictionaries. Mirrors dict/generate.js.
  * English spans BMP (U+E000–U+F8FF) with overflow into PUA-B.

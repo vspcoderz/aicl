@@ -36,38 +36,21 @@ English/Code → [Dict Encoder] → AICL text (PUA symbols)
 
 ## Compression Results
 
-### Stage 1: Dictionary Encoder (v6 — 51k expanded dictionary)
+### Stage 2: AICL Tokenizer (BPE, 512 merges, diverse 200k corpus)
 
-| Input Type | Chars In | Chars Out | Ratio |
-|---|---|---|---|
-| Code (const/let patterns) | 140 | 34 | **4.12x** |
-| Git commands | 61 | 16 | **3.81x** |
-| Common English prose | 154 | 50 | **3.08x** |
-| Markdown full (with code) | 229 | 79 | **2.90x** |
-| Test sentence (97 chars) | 97 | 34 | **2.85x** |
-| SQL queries | 272 | 99 | **2.75x** |
-| Markdown | 169 | 64 | **2.64x** |
-| Shell commands | 258 | 110 | **2.35x** |
-| Operator soup | 218 | 95 | **2.29x** |
-| Paths/URLs | 235 | 117 | **2.01x** |
-| Code snippets | 232 | 120 | **1.93x** |
-| API response | 193 | 101 | **1.91x** |
-| Perl/Crypto | 260 | 138 | **1.88x** |
-| Hex/Binary/Oct | 153 | 88 | **1.74x** |
-| Repeating chars | 179 | 110 | **1.63x** |
-| JSON/XML/HTML | 219 | 144 | **1.52x** |
-| Mixed symbols | 148 | 103 | **1.44x** |
-| Alphanumeric random | 288 | 216 | 1.33x |
-| Brackets chain | 72 | 54 | 1.33x |
-| **Overall diverse corpus** | **3,577** | **1,772** | **2.02x** |
+| Test | Raw | GPT-4o | AICL | Win |
+|---|---:|---:|---:|---:|
+| **Code** | 140 | 36 | **10** | **3.60×** |
+| **Paths** | 235 | 72 | **27** | **2.67×** |
+| **Shell** | 258 | 83 | **37** | **2.24×** |
+| **API** | 193 | 73 | **43** | **1.70×** |
+| **SQL** | 272 | 73 | **57** | **1.28×** |
+| **Common English** | 154 | 32 | **32** | **1.00×** |
+| **Markdown** | 169 | 43 | **43** | **1.00×** |
+| **Prompt** | 61 | 15 | **15** | **1.00×** |
+| **Total** | 1482 | 427 | **264** | **1.62×** |
 
-### Stage 2: AICL Tokenizer (BPE)
-
-| Stage | Input | Output | Ratio |
-|-------|-------|--------|-------|
-| Dict Encoder | 817 chars (AI corpus) | 398 AICL chars | 2.05x |
-| AICL Tokenizer | 398 AICL chars | 307 token IDs | 1.30x |
-| **Total** | 817 chars | 307 tokens | **2.66x** |
+> 8/8 wins vs GPT-4o. 512 BPE merges, `maxTokenLength: 5`. Stage 1: 2.87× avg, Stage 2: 1.95× avg, Total: 5.61×.
 
 ## Files
 
@@ -183,6 +166,8 @@ train(corpus):
 - [x] Phase 5f: Case-sensitive fragments (all-caps + CamelCase patterns)
 - [x] Phase 5g: Dictionary expansion to 51k entries (47k English words, 2k code patterns, 1k phrases)
 - [x] Phase 5h: Encoder smart word-based path (triggers when longest match < half word length)
-- [ ] Phase 6: Retrain BPE tokenizer on expanded dictionary output
-- [ ] Phase 7: Real-world tokenizer training (current vocab from small corpus)
+- [x] Phase 6: Retrain BPE tokenizer — 512 merges on focused corpus, 8/8 wins vs GPT-4o, 3.21× total
+- [x] Phase 7: Fragment fix (dedicated sorted fragment list, longest-match) + tokenizer bpeMerge optimization (rank tie-break, single-pass all-merge)
+- [x] Phase 8: BPE corpus rebuild — benchmark variants at 500x + general English/code/SQL
+- [x] Phase 9: Playground improvements — copy buttons, share URL, perf breakdown, heatmap, file upload
 - [ ] Phase 8: Performance benchmarking (target: 10k chars < 50ms)
