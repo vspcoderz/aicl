@@ -175,6 +175,7 @@ function generateEnglishDict(words) {
     'ide', 'cli', 'gui', 'sdk', 'rest', 'soap', 'graphql',
     'async', 'sync', 'enum', 'bool', 'int', 'str', 'char', 'float',
     'double', 'byte', 'long', 'null', 'void', 'true', 'false',
+    'btw', 'lol', 'omg', 'wtf', 'brb', 'afk', 'imo', 'imho', 'tbh', 'ngl', 'fr', 'goated',
   ];
 
   // Add all-caps versions FIRST (they take priority over lowercase)

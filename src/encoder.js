@@ -77,6 +77,26 @@ export function encode(text, opts = {}) {
 
       // Only try word-based encoding if we're at a word start
       if (word.length > 1) {
+        // For all-caps words like BTW, try direct lookup first (MOD_CAPS only handles Titlecase)
+        if (word === word.toUpperCase()) {
+          const capsSym = patternToSymbol.get(word);
+          if (capsSym) {
+            output += capsSym;
+            matches++;
+            if (steps) steps.push({ type: 'base', pattern: word, symbol: capsSym, pos: i });
+            i += word.length;
+            while (i < chars.length) {
+              const modName = punctuationToModifier(chars[i]);
+              if (modName) {
+                const modSym = patternToSymbol.get(modName);
+                if (modSym) { output += modSym; matches++; if (steps) steps.push({ type: 'modifier', name: modName, symbol: modSym, pos: i }); i++; continue; }
+              }
+              break;
+            }
+            continue;
+          }
+        }
+
         const lower = word.toLowerCase();
 
         // FIRST: Try whole word + modifiers
