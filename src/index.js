@@ -21,7 +21,13 @@ export { statsFor, countSymbols, countPuaSymbols } from './stats.js';
 export { render as visualize, colorizeEncoded } from './vision.js';
 export {
   ESCAPE_MARKER,
+  ESCAPE_CP,
   PUA_RANGES,
+  MAX_INPUT_CHARS,
+  MAX_BODY_BYTES,
+  requireText,
+  sanitizeText,
+  inspectText,
   isPuaCodePoint,
   charLength,
   codePoints,

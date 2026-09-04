@@ -10,7 +10,9 @@
     "test:corpus": "node test_corpus.mjs",
     "corpus": "node scripts/build_corpus.js",
     "benchmark": "node scripts/benchmark.mjs",
-    "bench": "node test/bench.js"
+    "bench": "node test/bench.js",
+    "playground": "node playground/server.mjs",
+    "playground:dev": "PORT=8787 node playground/server.mjs"
   },
   "keywords": [
     "compression",

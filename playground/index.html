@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>AICL Playground</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/playground/style.css"/>
+</head>
+<body>
+<div class="bg"></div>
+<header class="topbar">
+  <div class="brand">
+    <div class="mark">◈</div>
+    <div>
+      <div class="title">AICL Playground</div>
+      <div class="subtitle">2–5 PUA → 1 token · 51k dict · 512 merges — live encode &amp; tokenize</div>
+    </div>
+  </div>
+  <div class="top-actions">
+    <button id="share" class="btn ghost" title="Copy shareable link">Share</button>
+    <button id="uploadBtn" class="btn ghost" title="Upload .txt file">Upload</button>
+    <input type="file" id="fileInput" accept=".txt,.md,.js,.json,.sql,.html,.css,.py,.sh" hidden/>
+    <a class="pill" href="https://github.com/vspcoderz/aicl" target="_blank" rel="noreferrer">GitHub</a>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="hero">
+    <div class="hero-kicker">AI Compression Language — live</div>
+    <h1>Test the AICL tokenizer</h1>
+    <p>Paste any text and watch Stage 1 (PUA dictionary) + Stage 2 (BPE 2–5 PUA → 1 token) compress it in real time. Compare against GPT-3 / 4 / 4o / 5 and LLaMA 2.</p>
+    <div class="chips">
+      <span class="chip">Stage 1 · 2.87× avg</span>
+      <span class="chip">Stage 2 · 3.88× compression</span>
+      <span class="chip strong">8/8 wins</span>
+      <span class="chip ok">131/131 tests</span>
+    </div>
+  </section>
+
+  <section class="grid">
+    <div class="card input-card">
+      <div class="card-head">
+        <h2>Input</h2>
+        <div class="head-actions">
+          <select id="example" class="select">
+            <option value="">— Try an example —</option>
+            <option value="english">Common English</option>
+            <option value="code">Code — const/let</option>
+            <option value="sql">SQL</option>
+            <option value="api">API response (JSON)</option>
+            <option value="shell">Shell commands</option>
+            <option value="markdown">Markdown</option>
+            <option value="paths">Paths / URLs</option>
+            <option value="prompt">Prompt — Goated</option>
+            <option value="huge">Large block (1k chars)</option>
+          </select>
+          <button id="clear" class="btn ghost">Clear</button>
+        </div>
+      </div>
+      <div id="dropZone" class="drop-zone">
+        <textarea id="input" spellcheck="false" placeholder="Type or paste anything — code, markdown, shell, JSON… Drop a .txt file here too."></textarea>
+      </div>
+      <div class="input-foot">
+        <span id="charCount" class="muted">0 chars · 0 words</span>
+        <div class="toggles">
+          <label><input type="checkbox" id="toggleSteps" checked/> steps</label>
+          <label><input type="checkbox" id="toggleHex"/> hex</label>
+          <label><input type="checkbox" id="toggleHeatmap" checked/> heatmap</label>
+        </div>
+      </div>
+    </div>
+
+    <div class="card stats-card">
+      <div class="card-head"><h2>Results</h2><span id="status" class="muted">waiting…</span></div>
+
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-label">Raw chars</div><div id="kpiRaw" class="kpi-val">—</div></div>
+        <div class="kpi"><div class="kpi-label">AICL chars (Stage 1)</div><div id="kpiAicl" class="kpi-val">—</div><div id="kpiStage1" class="kpi-sub"></div></div>
+        <div class="kpi highlight"><div class="kpi-label">AICL tokens (Stage 2)</div><div id="kpiTokens" class="kpi-val">—</div><div id="kpiStage2" class="kpi-sub"></div></div>
+        <div class="kpi"><div class="kpi-label">vs GPT-4o win</div><div id="kpiWin" class="kpi-val win">—</div><div id="kpiSave" class="kpi-sub"></div></div>
+      </div>
+
+      <div class="perf" id="perfSection" style="display:none">
+        <div class="perf-head">Performance</div>
+        <div class="perf-row"><span>Stage 1 (encode)</span><span id="perfStage1" class="mono">—</span></div>
+        <div class="perf-row"><span>Stage 2 (tokenize)</span><span id="perfStage2" class="mono">—</span></div>
+        <div class="perf-row total"><span>Total</span><span id="perfTotal" class="mono">—</span></div>
+      </div>
+
+      <div class="compare">
+        <div class="compare-head">Tokenizer comparison — tokens (lower is better)</div>
+        <div id="bars" class="bars"></div>
+        <div class="legend">
+          <span><i class="dot gpt3"></i> GPT-3</span>
+          <span><i class="dot gpt4"></i> GPT-4</span>
+          <span><i class="dot gpt4o"></i> GPT-4o</span>
+          <span><i class="dot gpt5"></i> GPT-5</span>
+          <span><i class="dot llama"></i> LLaMA 2</span>
+          <span><i class="dot aicl"></i> AICL</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="details">
+    <div class="card">
+      <div class="card-head">
+        <h2>Pipeline</h2>
+        <div class="head-actions">
+          <button class="btn ghost small" id="copyAicl" title="Copy AICL output">Copy AICL</button>
+          <button class="btn ghost small" id="copyTokens" title="Copy token IDs">Copy Tokens</button>
+          <button class="btn ghost small" id="copyAll" title="Copy full pipeline">Copy All</button>
+        </div>
+      </div>
+      <div class="pipeline">
+        <div class="pipe-step">
+          <span class="pipe-label">Raw</span>
+          <pre id="pipeRaw" class="pipe-pre"></pre>
+        </div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-step">
+          <span class="pipe-label">AICL (PUA symbols)</span>
+          <div id="pipeAiclWrap" class="pipe-pre-wrap"></div>
+          <div id="pipeAiclMeta" class="muted small"></div>
+          <div class="heatmap-legend" id="heatmapLegend" style="display:none">
+            <span>Each color = 1 token (hover for token ID)</span>
+          </div>
+        </div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-step">
+          <span class="pipe-label">Tokens (IDs)</span>
+          <pre id="pipeTokens" class="pipe-pre mono"></pre>
+          <div id="pipeTokensMeta" class="muted small"></div>
+        </div>
+      </div>
+      <div id="roundtrip" class="roundtrip"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>Step view</h2><span class="muted" id="stepsMeta"></span></div>
+      <div id="steps" class="steps"></div>
+    </div>
+  </section>
+
+  <section class="card foot-card">
+    <div class="foot">
+      <div><a href="https://github.com/vspcoderz/aicl">github.com/vspcoderz/aicl</a> · MIT</div>
+      <div class="muted small">512 merges · max 5 PUA/token · 51k dict · strictly local, no data leaves your machine (except optional server API).</div>
+    </div>
+  </section>
+</main>
+
+<div id="toast" class="toast"></div>
+
+<script type="module" src="/playground/app.js"></script>
+</body>
+</html>

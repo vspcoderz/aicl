@@ -17,7 +17,7 @@
 import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import { codePoints } from '../unicode.js';
+import { codePoints, requireText } from '../unicode.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 export const VOCAB_PATH = join(__dirname, '..', '..', 'tokenizer', 'vocab.json');
@@ -60,38 +60,43 @@ export function emptyVocab(mergeBase = DEFAULT_MERGE_BASE) {
  * @returns {number[]}
  */
 export function bpeMerge(ids, merges) {
-  // Build pair index: pairKey -> {rank, mergedId}
+  // Build pair index: pairKey -> {rank, mergedId, a, b}
   const pairIndex = new Map();
   for (const [mergedId, rule] of merges) {
     const key = pairKey(rule.a, rule.b);
     const existing = pairIndex.get(key);
     if (!existing || rule.rank < existing.rank) {
-      pairIndex.set(key, { rank: rule.rank, mergedId });
+      pairIndex.set(key, { rank: rule.rank, mergedId, a: rule.a, b: rule.b });
     }
   }
+  if (pairIndex.size === 0) return ids.slice();
 
-  const seq = ids.slice();
-  let changed = true;
-  while (changed) {
-    changed = false;
-    let bestKey = null;
+  let seq = ids.slice();
+  while (true) {
     let bestRank = Infinity;
-    let bestMergedId = null;
-    let bestIdx = -1;
+    let bestRule = null;
     for (let i = 0; i < seq.length - 1; i++) {
       const key = pairKey(seq[i], seq[i + 1]);
       const rule = pairIndex.get(key);
       if (rule && rule.rank < bestRank) {
         bestRank = rule.rank;
-        bestKey = key;
-        bestMergedId = rule.mergedId;
-        bestIdx = i;
+        bestRule = rule;
+        if (bestRank === 0) break; // can't beat rank 0
       }
     }
-    if (bestMergedId !== null) {
-      seq.splice(bestIdx, 2, bestMergedId);
-      changed = true;
+    if (!bestRule) break;
+    // merge all non-overlapping occurrences of best pair in one pass
+    const next = [];
+    for (let i = 0; i < seq.length; i++) {
+      if (i < seq.length - 1 && seq[i] === bestRule.a && seq[i + 1] === bestRule.b) {
+        next.push(bestRule.mergedId);
+        i++;
+      } else {
+        next.push(seq[i]);
+      }
     }
+    if (next.length === seq.length) break; // no progress (shouldn't happen)
+    seq = next;
   }
   return seq;
 }
@@ -103,6 +108,7 @@ export function bpeMerge(ids, merges) {
  * @returns {number[]}
  */
 export function tokenize(aiclText, vocab = loadTokenizer()) {
+  requireText(aiclText, 'aiclText');
   const ids = codePoints(aiclText).map(cpToId);
   return bpeMerge(ids, vocab.merges);
 }
@@ -165,7 +171,8 @@ export function trainTokenizer(aiclCorpus, opts = {}) {
     let bestKey = null;
     let bestCount = 0;
     for (const [key, count] of pairCounts) {
-      if (count > bestCount && count >= minFreq) {
+      if (count < minFreq) continue;
+      if (count > bestCount || (count === bestCount && (bestKey === null || key < bestKey))) {
         bestCount = count;
         bestKey = key;
       }

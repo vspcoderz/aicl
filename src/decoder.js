@@ -12,7 +12,7 @@
  */
 
 import { build, isModifier, getModifierTransform } from './dict.js';
-import { codePoints, isPuaCodePoint, ESCAPE_MARKER } from './unicode.js';
+import { codePoints, isPuaCodePoint, ESCAPE_MARKER, requireText } from './unicode.js';
 
 /**
  * Decode AICL back into original text.
@@ -22,6 +22,7 @@ import { codePoints, isPuaCodePoint, ESCAPE_MARKER } from './unicode.js';
  * @returns {{ output: string, steps?: object[], expansions?: number, literals?: number }}
  */
 export function decode(aiclText, opts = {}) {
+  requireText(aiclText, 'aiclText');
   const { symbolToPattern, modifierMap } = build();
   const steps = opts.steps ? [] : null;
 
