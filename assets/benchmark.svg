@@ -3,7 +3,7 @@
 <rect width="900" height="580" rx="16" fill="#0a0a0a"/>
 <text x="36" y="40" class="t">AICLTokenizer vs GPT-4o (o200k_base)</text>
 <text x="36" y="60" class="s">tokens — lower is better · 2–5 PUA → 1 token · 249 merges · vertical square bars</text>
-<circle cx="36" cy="78" r="5" fill="#27272a"/><text x="48" y="82" class="s">GPT-4o</text><circle cx="110" cy="78" r="5" fill="#fafafa"/><text x="122" y="82" class="s">AICLTokenizer</text>
+<circle cx="36" cy="78" r="5" fill="#27272a" opacity="0.8"/><text x="48" y="82" class="s">GPT-4o</text><circle cx="110" cy="78" r="5" fill="#fafafa"/><text x="122" y="82" class="s">AICLTokenizer</text>
 <!-- grid y 0-220 -->
 <g stroke="#1f1f23" stroke-width="1">
   <line x1="60" y1="110" x2="860" y2="110"/><line x1="60" y1="184" x2="860" y2="184"/><line x1="60" y1="258" x2="860" y2="258"/><line x1="60" y1="332" x2="860" y2="332"/><line x1="60" y1="406" x2="860" y2="406"/>
@@ -12,37 +12,37 @@
 
 <!-- Common English: GPT 32, AICL 25 -->
 <g transform="translate(90,0)">
-  <rect x="0" y="360" width="26" height="47" fill="#27272a"/><text x="13" y="354" text-anchor="middle" fill="#9ca3af" font-size="9" font-weight="600">32</text>
+  <rect x="0" y="360" width="26" height="47" fill="#27272a" opacity="0.8"/><text x="13" y="354" text-anchor="middle" fill="#9ca3af" font-size="9" font-weight="600">32</text>
   <rect x="30" y="370" width="26" height="36" fill="#fafafa"/><text x="43" y="364" text-anchor="middle" fill="#fafafa" font-size="9" font-weight="700">25</text>
   <text x="28" y="440" text-anchor="middle" class="n">Common</text><text x="28" y="452" text-anchor="middle" class="n">English</text><text x="28" y="468" text-anchor="middle" fill="#10b981" font-size="9" font-weight="700">1.28×</text>
 </g>
 <!-- Code: GPT 36, AICL 9 -->
 <g transform="translate(210,0)">
-  <rect x="0" y="354" width="26" height="52" fill="#27272a"/><text x="13" y="348" text-anchor="middle" fill="#9ca3af" font-size="9" font-weight="600">36</text>
+  <rect x="0" y="354" width="26" height="52" fill="#27272a" opacity="0.8"/><text x="13" y="348" text-anchor="middle" fill="#9ca3af" font-size="9" font-weight="600">36</text>
   <rect x="0" y="393" width="26" height="13" fill="#fafafa"/><text x="13" y="387" text-anchor="middle" fill="#fafafa" font-size="9" font-weight="700">9</text>
   <text x="13" y="440" text-anchor="middle" class="n">Code</text><text x="13" y="468" text-anchor="middle" fill="#10b981" font-size="9" font-weight="700">4.00×</text>
 </g>
 <!-- SQL: GPT 37, AICL 31 -->
 <g transform="translate(330,0)">
-  <rect x="0" y="352" width="26" height="54" fill="#27272a"/><text x="13" y="346" text-anchor="middle" fill="#9ca3af" font-size="9" font-weight="600">37</text>
+  <rect x="0" y="352" width="26" height="54" fill="#27272a" opacity="0.8"/><text x="13" y="346" text-anchor="middle" fill="#9ca3af" font-size="9" font-weight="600">37</text>
   <rect x="0" y="361" width="26" height="45" fill="#fafafa"/><text x="13" y="355" text-anchor="middle" fill="#fafafa" font-size="9" font-weight="700">31</text>
   <text x="13" y="440" text-anchor="middle" class="n">SQL</text><text x="13" y="468" text-anchor="middle" fill="#10b981" font-size="9" font-weight="700">1.19×</text>
 </g>
 <!-- API: GPT 73, AICL 19 -->
 <g transform="translate(450,0)">
-  <rect x="0" y="300" width="26" height="106" fill="#27272a"/><text x="13" y="294" text-anchor="middle" fill="#9ca3af" font-size="9" font-weight="600">73</text>
+  <rect x="0" y="300" width="26" height="106" fill="#27272a" opacity="0.8"/><text x="13" y="294" text-anchor="middle" fill="#9ca3af" font-size="9" font-weight="600">73</text>
   <rect x="0" y="379" width="26" height="27" fill="#fafafa"/><text x="13" y="373" text-anchor="middle" fill="#fafafa" font-size="9" font-weight="700">19</text>
   <text x="13" y="440" text-anchor="middle" class="n">API</text><text x="13" y="452" text-anchor="middle" class="n">response</text><text x="13" y="468" text-anchor="middle" fill="#10b981" font-size="9" font-weight="700">3.85×</text>
 </g>
 <!-- Normal Prompt: GPT 51, AICL 48 -->
 <g transform="translate(570,0)">
-  <rect x="0" y="332" width="26" height="74" fill="#27272a"/><text x="13" y="326" text-anchor="middle" fill="#9ca3af" font-size="9" font-weight="600">51</text>
+  <rect x="0" y="332" width="26" height="74" fill="#27272a" opacity="0.8"/><text x="13" y="326" text-anchor="middle" fill="#9ca3af" font-size="9" font-weight="600">51</text>
   <rect x="0" y="337" width="26" height="69" fill="#fafafa"/><text x="13" y="331" text-anchor="middle" fill="#fafafa" font-size="9" font-weight="700">48</text>
   <text x="13" y="440" text-anchor="middle" class="n">Normal</text><text x="13" y="452" text-anchor="middle" class="n">Prompt</text><text x="13" y="468" text-anchor="middle" fill="#10b981" font-size="9" font-weight="700">1.06×</text>
 </g>
 <!-- Alphanumeric: GPT 211, AICL 200 -->
 <g transform="translate(690,0)">
-  <rect x="0" y="100" width="26" height="306" fill="#27272a"/><text x="13" y="94" text-anchor="middle" fill="#9ca3af" font-size="9" font-weight="600">211</text>
+  <rect x="0" y="100" width="26" height="306" fill="#27272a" opacity="0.8"/><text x="13" y="94" text-anchor="middle" fill="#9ca3af" font-size="9" font-weight="600">211</text>
   <rect x="30" y="116" width="26" height="290" fill="#fafafa"/><text x="43" y="110" text-anchor="middle" fill="#fafafa" font-size="9" font-weight="700">200</text>
   <text x="28" y="440" text-anchor="middle" class="n">Alphan.</text><text x="28" y="468" text-anchor="middle" fill="#10b981" font-size="9" font-weight="700">1.06×</text>
 </g>
