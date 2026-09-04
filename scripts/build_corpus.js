@@ -17,6 +17,10 @@ const base = [
   '# Taskboard API\n## Setup\n- [x] install\n- [ ] test\n```javascript\nconst api = require("taskboard");\n```\n',
   'aicl is Goated BTW, and this can reduce tokens very vary fast ',
   'machine learning deep learning transformer attention embedding vector database retrieval augmented generation ',
+  // Failing tests - add to ensure tokenizer learns their PUA pairs
+  '$ echo "Hello, World!"; printf \'%s\\n\' "$HOME"; ls -la /tmp | grep ".log" && cat file.txt; sudo -n true || echo "no sudo"; python3 -c \'print("test")\'; node -e "console.log(42)"; git status --short; ',
+  '# README.md ## Test Project ### Features - fast - simple - random ### Code `npm install && npm run dev` **bold** *italic* [link](https://example.com) > quote --- ### End ',
+  'C:\\Users\\Test\\file.txt D:\\Games\\MC\\server.exe /usr/bin/bash ~/.config/hypr/hyprland.conf ../../src/main.js ./build/output.log https://example.com/?a=1&b=2 ftp://x@y.z:21/path git@host:user/repo.git user@example.com ',
 ];
 
 let parts = [];
