@@ -1,61 +1,63 @@
-<svg width="900" height="680" xmlns="http://www.w3.org/2000/svg">
-<style>.t{font:700 18px 'Inter',system-ui,sans-serif;fill:#f9fafb}.s{font:400 11px 'Inter',system-ui,sans-serif;fill:#9ca3af}.n{font:600 9.5px 'Inter',system-ui,sans-serif;fill:#e5e7eb}.a{font:400 9px 'Inter',system-ui,sans-serif;fill:#6b7280}</style>
-<rect width="900" height="680" rx="16" fill="#0a0a0a"/>
-<text x="36" y="38" class="t">AICLTokenizer vs GPT-3 / GPT-4 / GPT-4o / GPT-5</text>
-<text x="36" y="58" class="s">tokens — lower is better · GPT-5 = o200k_harmony · AICL = BPE 2-5 PUA (249 merges)</text>
-<g transform="translate(36,70)">
+<svg width="900" height="720" xmlns="http://www.w3.org/2000/svg">
+<style>.t{font:700 18px 'Inter',system-ui,sans-serif;fill:#f9fafb}.s{font:400 11px 'Inter',system-ui,sans-serif;fill:#9ca3af}.n{font:600 9px 'Inter',system-ui,sans-serif;fill:#e5e7eb}.a{font:400 8px 'Inter',system-ui,sans-serif;fill:#6b7280}</style>
+<rect width="900" height="720" rx="16" fill="#0a0a0a"/>
+<text x="36" y="36" class="t">AICLTokenizer vs All Tokenizers</text>
+<text x="36" y="56" class="s">tokens — lower is better · GPT-3/4/4o/5 + LLaMA 2 + AICL (249 merges, 2-5 PUA → 1 token)</text>
+<g transform="translate(36,68)">
   <rect x="0" y="0" width="10" height="10" fill="#f97316" opacity="0.8"/><text x="14" y="9" class="s">GPT-3</text>
-  <rect x="62" y="0" width="10" height="10" fill="#eab308" opacity="0.8"/><text x="76" y="9" class="s">GPT-4</text>
-  <rect x="116" y="0" width="10" height="10" fill="#06b6d4" opacity="0.8"/><text x="130" y="9" class="s">GPT-4o</text>
-  <rect x="178" y="0" width="10" height="10" fill="#8b5cf6" opacity="0.8"/><text x="192" y="9" class="s">GPT-5</text>
-  <rect x="236" y="0" width="10" height="10" fill="#fafafa"/><text x="250" y="9" class="s">AICL</text>
+  <rect x="58" y="0" width="10" height="10" fill="#eab308" opacity="0.8"/><text x="72" y="9" class="s">GPT-4</text>
+  <rect x="112" y="0" width="10" height="10" fill="#06b6d4" opacity="0.8"/><text x="126" y="9" class="s">GPT-4o</text>
+  <rect x="172" y="0" width="10" height="10" fill="#8b5cf6" opacity="0.8"/><text x="186" y="9" class="s">GPT-5</text>
+  <rect x="226" y="0" width="10" height="10" fill="#f43f5e" opacity="0.8"/><text x="240" y="9" class="s">LLaMA2</text>
+  <rect x="296" y="0" width="10" height="10" fill="#fafafa"/><text x="310" y="9" class="s">AICL</text>
 </g>
-<!-- y grid 0-110 -->
+<!-- grid 0-110 -->
 <g stroke="#1a1a1e" stroke-width="1">
-  <line x1="60" y1="102" x2="860" y2="102"/><line x1="60" y1="188" x2="860" y2="188"/><line x1="60" y1="274" x2="860" y2="274"/><line x1="60" y1="360" x2="860" y2="360"/><line x1="60" y1="446" x2="860" y2="446"/>
+  <line x1="60" y1="100" x2="860" y2="100"/><line x1="60" y1="190" x2="860" y2="190"/><line x1="60" y1="280" x2="860" y2="280"/><line x1="60" y1="370" x2="860" y2="370"/><line x1="60" y1="460" x2="860" y2="460"/>
 </g>
-<text x="48" y="106" class="a" text-anchor="end">110</text><text x="48" y="192" class="a" text-anchor="end">82</text><text x="48" y="278" class="a" text-anchor="end">55</text><text x="48" y="364" class="a" text-anchor="end">27</text><text x="48" y="450" class="a" text-anchor="end">0</text>
+<text x="48" y="104" class="a" text-anchor="end">110</text><text x="48" y="194" class="a" text-anchor="end">82</text><text x="48" y="284" class="a" text-anchor="end">55</text><text x="48" y="374" class="a" text-anchor="end">27</text><text x="48" y="464" class="a" text-anchor="end">0</text>
 
-<!-- Common English: 32,32,32,32,25 -->
+<!-- Common English: 32,32,32,32,36,25 -->
 <g transform="translate(80,0)">
-  <rect x="0" y="340" width="10" height="106" fill="#f97316" opacity="0.8"/><rect x="12" y="340" width="10" height="106" fill="#eab308" opacity="0.8"/><rect x="24" y="340" width="10" height="106" fill="#06b6d4" opacity="0.8"/><rect x="36" y="340" width="10" height="106" fill="#8b5cf6" opacity="0.8"/><rect x="48" y="363" width="10" height="83" fill="#fafafa"/>
-  <text x="29" y="500" text-anchor="middle" class="n">Common</text><text x="29" y="512" text-anchor="middle" class="n">English</text><text x="29" y="530" text-anchor="middle" fill="#a78bfa" font-size="8" font-weight="700">1.28×</text>
+  <rect x="0" y="344" width="9" height="106" fill="#f97316" opacity="0.8"/><rect x="11" y="344" width="9" height="106" fill="#eab308" opacity="0.8"/><rect x="22" y="344" width="9" height="106" fill="#06b6d4" opacity="0.8"/><rect x="33" y="344" width="9" height="106" fill="#8b5cf6" opacity="0.8"/><rect x="44" y="332" width="9" height="118" fill="#f43f5e" opacity="0.8"/><rect x="55" y="368" width="9" height="82" fill="#fafafa"/>
+  <text x="32" y="500" text-anchor="middle" class="n">Common</text><text x="32" y="512" text-anchor="middle" class="n">Eng</text><text x="32" y="530" text-anchor="middle" fill="#a78bfa" font-size="7" font-weight="700">1.28×</text>
 </g>
-<!-- Code: 44,36,36,36,9 -->
-<g transform="translate(180,0)">
-  <rect x="0" y="300" width="10" height="146" fill="#f97316" opacity="0.8"/><rect x="12" y="327" width="10" height="119" fill="#eab308" opacity="0.8"/><rect x="24" y="327" width="10" height="119" fill="#06b6d4" opacity="0.8"/><rect x="36" y="327" width="10" height="119" fill="#8b5cf6" opacity="0.8"/><rect x="48" y="416" width="10" height="30" fill="#fafafa"/>
-  <text x="29" y="500" text-anchor="middle" class="n">Code</text><text x="29" y="530" text-anchor="middle" fill="#a78bfa" font-size="8" font-weight="700">4.00×</text>
+<!-- Code: 44,36,36,36,42,9 -->
+<g transform="translate(165,0)">
+  <rect x="0" y="304" width="9" height="146" fill="#f97316" opacity="0.8"/><rect x="11" y="331" width="9" height="119" fill="#eab308" opacity="0.8"/><rect x="22" y="331" width="9" height="119" fill="#06b6d4" opacity="0.8"/><rect x="33" y="331" width="9" height="119" fill="#8b5cf6" opacity="0.8"/><rect x="44" y="310" width="9" height="140" fill="#f43f5e" opacity="0.8"/><rect x="55" y="420" width="9" height="30" fill="#fafafa"/>
+  <text x="32" y="500" text-anchor="middle" class="n">Code</text><text x="32" y="530" text-anchor="middle" fill="#a78bfa" font-size="7" font-weight="700">4.00×</text>
 </g>
-<!-- SQL: 46,37,37,37,31 -->
-<g transform="translate(280,0)">
-  <rect x="0" y="294" width="10" height="152" fill="#f97316" opacity="0.8"/><rect x="12" y="324" width="10" height="122" fill="#eab308" opacity="0.8"/><rect x="24" y="324" width="10" height="122" fill="#06b6d4" opacity="0.8"/><rect x="36" y="324" width="10" height="122" fill="#8b5cf6" opacity="0.8"/><rect x="48" y="343" width="10" height="103" fill="#fafafa"/>
-  <text x="29" y="500" text-anchor="middle" class="n">SQL</text><text x="29" y="530" text-anchor="middle" fill="#a78bfa" font-size="8" font-weight="700">1.19×</text>
+<!-- SQL: 46,37,37,37,43,31 -->
+<g transform="translate(250,0)">
+  <rect x="0" y="298" width="9" height="152" fill="#f97316" opacity="0.8"/><rect x="11" y="328" width="9" height="122" fill="#eab308" opacity="0.8"/><rect x="22" y="328" width="9" height="122" fill="#06b6d4" opacity="0.8"/><rect x="33" y="328" width="9" height="122" fill="#8b5cf6" opacity="0.8"/><rect x="44" y="308" width="9" height="142" fill="#f43f5e" opacity="0.8"/><rect x="55" y="348" width="9" height="102" fill="#fafafa"/>
+  <text x="32" y="500" text-anchor="middle" class="n">SQL</text><text x="32" y="530" text-anchor="middle" fill="#a78bfa" font-size="7" font-weight="700">1.19×</text>
 </g>
-<!-- API: 74,73,73,73,19 -->
-<g transform="translate(380,0)">
-  <rect x="0" y="201" width="10" height="245" fill="#f97316" opacity="0.8"/><rect x="12" y="205" width="10" height="241" fill="#eab308" opacity="0.8"/><rect x="24" y="205" width="10" height="241" fill="#06b6d4" opacity="0.8"/><rect x="36" y="205" width="10" height="241" fill="#8b5cf6" opacity="0.8"/><rect x="48" y="383" width="10" height="63" fill="#fafafa"/>
-  <text x="29" y="500" text-anchor="middle" class="n">API</text><text x="29" y="530" text-anchor="middle" fill="#a78bfa" font-size="8" font-weight="700">3.85×</text>
+<!-- API: 74,73,73,73,83,19 -->
+<g transform="translate(335,0)">
+  <rect x="0" y="205" width="9" height="245" fill="#f97316" opacity="0.8"/><rect x="11" y="209" width="9" height="241" fill="#eab308" opacity="0.8"/><rect x="22" y="209" width="9" height="241" fill="#06b6d4" opacity="0.8"/><rect x="33" y="209" width="9" height="241" fill="#8b5cf6" opacity="0.8"/><rect x="44" y="176" width="9" height="274" fill="#f43f5e" opacity="0.8"/><rect x="55" y="387" width="9" height="63" fill="#fafafa"/>
+  <text x="32" y="500" text-anchor="middle" class="n">API</text><text x="32" y="530" text-anchor="middle" fill="#a78bfa" font-size="7" font-weight="700">3.85×</text>
 </g>
-<!-- Shell: 70,66,66,66,84 (AICL loses) -->
-<g transform="translate(480,0)">
-  <rect x="0" y="214" width="10" height="232" fill="#f97316" opacity="0.8"/><rect x="12" y="227" width="10" height="219" fill="#eab308" opacity="0.8"/><rect x="24" y="227" width="10" height="219" fill="#06b6d4" opacity="0.8"/><rect x="36" y="227" width="10" height="219" fill="#8b5cf6" opacity="0.8"/><rect x="48" y="168" width="10" height="278" fill="#fafafa" opacity="0.5"/>
-  <text x="29" y="500" text-anchor="middle" class="n">Shell</text><text x="29" y="530" text-anchor="middle" fill="#ef4444" font-size="8" font-weight="700">0.79×</text>
+<!-- Shell: 70,66,66,66,71,84 -->
+<g transform="translate(420,0)">
+  <rect x="0" y="218" width="9" height="232" fill="#f97316" opacity="0.8"/><rect x="11" y="231" width="9" height="219" fill="#eab308" opacity="0.8"/><rect x="22" y="231" width="9" height="219" fill="#06b6d4" opacity="0.8"/><rect x="33" y="231" width="9" height="219" fill="#8b5cf6" opacity="0.8"/><rect x="44" y="215" width="9" height="235" fill="#f43f5e" opacity="0.8"/><rect x="55" y="172" width="9" height="278" fill="#fafafa" opacity="0.5"/>
+  <text x="32" y="500" text-anchor="middle" class="n">Shell</text><text x="32" y="530" text-anchor="middle" fill="#ef4444" font-size="7" font-weight="700">0.79×</text>
 </g>
-<!-- Markdown: 48,43,43,43,57 (lose) -->
-<g transform="translate(580,0)">
-  <rect x="0" y="287" width="10" height="159" fill="#f97316" opacity="0.8"/><rect x="12" y="304" width="10" height="142" fill="#eab308" opacity="0.8"/><rect x="24" y="304" width="10" height="142" fill="#06b6d4" opacity="0.8"/><rect x="36" y="304" width="10" height="142" fill="#8b5cf6" opacity="0.8"/><rect x="48" y="257" width="10" height="189" fill="#fafafa" opacity="0.5"/>
-  <text x="29" y="500" text-anchor="middle" class="n">Markdown</text><text x="29" y="530" text-anchor="middle" fill="#ef4444" font-size="8" font-weight="700">0.75×</text>
+<!-- Markdown: 48,43,43,43,50,57 -->
+<g transform="translate(505,0)">
+  <rect x="0" y="291" width="9" height="159" fill="#f97316" opacity="0.8"/><rect x="11" y="308" width="9" height="142" fill="#eab308" opacity="0.8"/><rect x="22" y="308" width="9" height="142" fill="#06b6d4" opacity="0.8"/><rect x="33" y="308" width="9" height="142" fill="#8b5cf6" opacity="0.8"/><rect x="44" y="285" width="9" height="165" fill="#f43f5e" opacity="0.8"/><rect x="55" y="261" width="9" height="189" fill="#fafafa" opacity="0.5"/>
+  <text x="32" y="500" text-anchor="middle" class="n">Markdown</text><text x="32" y="530" text-anchor="middle" fill="#ef4444" font-size="7" font-weight="700">0.75×</text>
 </g>
-<!-- Paths: 89,68,67,67,107 (lose) -->
-<g transform="translate(680,0)">
-  <rect x="0" y="151" width="10" height="295" fill="#f97316" opacity="0.8"/><rect x="12" y="221" width="10" height="225" fill="#eab308" opacity="0.8"/><rect x="24" y="224" width="10" height="222" fill="#06b6d4" opacity="0.8"/><rect x="36" y="224" width="10" height="222" fill="#8b5cf6" opacity="0.8"/><rect x="48" y="92" width="10" height="354" fill="#fafafa" opacity="0.5"/>
-  <text x="29" y="500" text-anchor="middle" class="n">Paths</text><text x="29" y="530" text-anchor="middle" fill="#ef4444" font-size="8" font-weight="700">0.63×</text>
+<!-- Paths: 89,68,67,67,91,107 -->
+<g transform="translate(590,0)">
+  <rect x="0" y="155" width="9" height="295" fill="#f97316" opacity="0.8"/><rect x="11" y="225" width="9" height="225" fill="#eab308" opacity="0.8"/><rect x="22" y="228" width="9" height="222" fill="#06b6d4" opacity="0.8"/><rect x="33" y="228" width="9" height="222" fill="#8b5cf6" opacity="0.8"/><rect x="44" y="149" width="9" height="301" fill="#f43f5e" opacity="0.8"/><rect x="55" y="96" width="9" height="354" fill="#fafafa" opacity="0.5"/>
+  <text x="32" y="500" text-anchor="middle" class="n">Paths</text><text x="32" y="530" text-anchor="middle" fill="#ef4444" font-size="7" font-weight="700">0.63×</text>
 </g>
-<!-- Your string: 59,52,51,51,48 (win) -->
-<g transform="translate(780,0)">
-  <rect x="0" y="251" width="10" height="195" fill="#f97316" opacity="0.8"/><rect x="12" y="274" width="10" height="172" fill="#eab308" opacity="0.8"/><rect x="24" y="277" width="10" height="169" fill="#06b6d4" opacity="0.8"/><rect x="36" y="277" width="10" height="169" fill="#8b5cf6" opacity="0.8"/><rect x="48" y="287" width="10" height="159" fill="#fafafa"/>
-  <text x="29" y="500" text-anchor="middle" class="n">Prompt</text><text x="29" y="530" text-anchor="middle" fill="#a78bfa" font-size="8" font-weight="700">1.06×</text>
+<!-- Prompt: 59,52,51,51,63,48 -->
+<g transform="translate(675,0)">
+  <rect x="0" y="255" width="9" height="195" fill="#f97316" opacity="0.8"/><rect x="11" y="278" width="9" height="172" fill="#eab308" opacity="0.8"/><rect x="22" y="281" width="9" height="169" fill="#06b6d4" opacity="0.8"/><rect x="33" y="281" width="9" height="169" fill="#8b5cf6" opacity="0.8"/><rect x="44" y="242" width="9" height="208" fill="#f43f5e" opacity="0.8"/><rect x="55" y="291" width="9" height="159" fill="#fafafa"/>
+  <text x="32" y="500" text-anchor="middle" class="n">Prompt</text><text x="32" y="530" text-anchor="middle" fill="#a78bfa" font-size="7" font-weight="700">1.06×</text>
 </g>
-<line x1="36" y1="550" x2="864" y2="550" stroke="#1f1f23"/>
-<text x="36" y="568" class="s">Square bars · Lower = cheaper · AICL wins 5/8 vs GPT-5 · Losses: shell/path/markdown need more dict</text>
+<line x1="36" y1="560" x2="864" y2="560" stroke="#1f1f23"/>
+<text x="36" y="580" class="s">Square bars · Lower = cheaper · AICL wins 5/8 vs GPT-5 + LLaMA — losses need more shell/path dict</text>
+<text x="36" y="600" class="s">github.com/vspcoderz/aicl · 131/131 pass · 8 tests · 6 tokenizers</text>
 </svg>
