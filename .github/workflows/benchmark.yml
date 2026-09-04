@@ -2,74 +2,27 @@ name: Benchmark
 
 on:
   push:
-    branches: [main, new-rewrite]
+    branches: [main]
   workflow_dispatch:
 
 permissions:
   contents: read
-  pull-requests: write
-  issues: write
-
-concurrency:
-  group: benchmark-${{ github.ref }}
-  cancel-in-progress: true
 
 jobs:
   benchmark:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 15
     steps:
-      - name: Wait 30 min to batch commits
-        run: |
-          echo "Sleeping 30 min to batch rapid commits..."
-          sleep 1800
-
-      - name: Check if newer commit exists (skip if batched)
-        id: check
-        run: |
-          git fetch origin ${{ github.ref_name }} --depth 1
-          HEAD_SHA=$(git rev-parse HEAD)
-          ORIGIN_SHA=$(git rev-parse origin/${{ github.ref_name }})
-          echo "HEAD $HEAD_SHA"
-          echo "ORIGIN $ORIGIN_SHA"
-          echo "EVENT ${{ github.sha }}"
-          if [ "$HEAD_SHA" != "${{ github.sha }}" ] || [ "$ORIGIN_SHA" != "${{ github.sha }}" ]; then
-            echo "Newer commit detected — skipping this run (will be covered by latest)."
-            echo "skip=true" >> $GITHUB_OUTPUT
-          else
-            echo "skip=false" >> $GITHUB_OUTPUT
-          fi
-
       - uses: actions/checkout@v4
-        if: steps.check.outputs.skip == 'false'
-        with:
-          ref: ${{ github.sha }}
-
       - uses: actions/setup-node@v4
-        if: steps.check.outputs.skip == 'false'
         with:
           node-version: '20'
           cache: 'npm'
-
-      - name: Install deps
-        if: steps.check.outputs.skip == 'false'
-        run: npm ci
-
-      - name: Install ImageMagick (for benchmark.png)
-        if: steps.check.outputs.skip == 'false'
-        run: sudo apt-get update && sudo apt-get install -y imagemagick
-
-      - name: Run Stage1 tests
-        if: steps.check.outputs.skip == 'false'
-        run: node test/test.js
-
-      - name: Run Stage1 corpus bench
-        if: steps.check.outputs.skip == 'false'
-        run: node test_corpus.mjs | tee bench-stage1.txt
-
-      - name: Run Full pipeline bench (vs GPT-4o + LLaMA)
-        if: steps.check.outputs.skip == 'false'
-        run: |
+      - run: npm ci
+      - run: sudo apt-get update && sudo apt-get install -y imagemagick
+      - run: node test/test.js
+      - run: node test_corpus.mjs | tee bench-stage1.txt
+      - run: |
           node -e "
           import llamaTokenizer from 'llama-tokenizer-js';
           import {encode as gptEncode} from 'gpt-tokenizer';
@@ -81,7 +34,7 @@ jobs:
             ['Code','const app = express(); app.get(\"/api/tasks\", async (req, res) => { const tasks = await db.query(\"SELECT * FROM tasks\"); res.json(tasks); });'],
             ['SQL','SELECT * FROM users WHERE id=42 AND name LIKE \\'%test%\\' ORDER BY created_at DESC;'],
             ['API','{\"status\": \"success\", \"data\": {\"users\": [{\"id\": 1, \"name\": \"John\", \"email\": \"john@example.com\"}]}}'],
-            ['Your string','aicl is Goated BTW, and this can reduce tokens very vary fast fdslkjfl kjlkdfjl sdaj aowryhka bdfssdaaasd[okaspduaosndlkah98[h9[yf[a\\''],
+            ['Prompt','aicl is Goated BTW, and this can reduce tokens very vary fast fdslkjfl kjlkdfjl sdaj aowryhka bdfssdaaasd[okaspduaosndlkah98[h9[yf[a\\''],
           ];
           console.log('Test | GPT-4o | LLaMA2 | AICL | Win');
           for(const [n,raw] of tests){
@@ -91,30 +44,10 @@ jobs:
             console.log(n+' | '+g+' | '+l+' | '+a+' | '+(Math.min(g,l)/a).toFixed(2)+'x');
           }
           " | tee bench-full.txt
-
-      - name: Regenerate benchmarks (if needed)
-        if: steps.check.outputs.skip == 'false'
-        run: |
-          # Keep existing assets/benchmark*.png as source of truth
-          # Or regenerate via: node scripts/build_corpus.js && node scripts/gen-benchmark.js
-          ls -lh assets/benchmark*.png || true
-
-      - name: Upload bench results
-        if: steps.check.outputs.skip == 'false'
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: bench-${{ github.sha }}
           path: |
             bench-*.txt
             assets/benchmark*.png
           retention-days: 30
-
-      - name: Comment on commit
-        if: steps.check.outputs.skip == 'false'
-        uses: peter-evans/commit-comment@v3
-        with:
-          body: |
-            **Benchmark — ${{ github.sha }}**
-            - Stage1: see `bench-stage1.txt`
-            - Full pipeline (vs GPT-4o/LLaMA): see `bench-full.txt`
-            - Artifacts: benchmark PNGs
