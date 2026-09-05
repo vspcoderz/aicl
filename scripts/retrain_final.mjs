@@ -1,22 +1,20 @@
 #!/usr/bin/env node
-import { readFileSync, writeFileSync } from 'fs';
-import { encode } from '../src/encoder.js';
-import { trainTokenizer, saveTokenizer, tokenize, detokenize, VOCAB_PATH } from '../src/tokenizer/index.js';
+import { readFileSync } from 'fs';
+import { trainTokenizerFast } from './train_fast.mjs';
+import { saveTokenizer, tokenize, detokenize, VOCAB_PATH } from '../src/tokenizer/index.js';
 import { encode as gptEncode } from 'gpt-tokenizer';
 
-// ── Load corpus (subsample to 200k chars for fast training) ──
-const rawCorpus = readFileSync('corpus/aicl_train.txt', 'utf-8');
-const lines = rawCorpus.split('\n');
-const trainCorpus = lines.filter((_, i) => i % 6 === 0).join('\n');
-console.log(`Train corpus: ${trainCorpus.length} chars, ${lines.filter((_, i) => i % 6 === 0).length} lines`);
+// ── Load blended corpus (v1 broad mix + v4 canonical generalization-first) ──
+const lines = readFileSync('corpus/bpe_train_blend.txt', 'utf-8').split('\n').filter(Boolean);
+console.log(`Train corpus: ${lines.length} lines`);
 
-// ── Train ──
-console.log('Training 512 merges...');
+// ── Train (8192 merges, max 14 PUA/token — see sweep_fast.mjs) ──
+console.log('Training 8192 merges (maxTokenLength 14)...');
 const t0 = Date.now();
-const vocab = trainTokenizer([trainCorpus], {
-  numMerges: 512,
+const vocab = trainTokenizerFast(lines, {
+  numMerges: 8192,
   mergeBase: 100000,
-  maxTokenLength: 5,
+  maxTokenLength: 14,
   minFrequency: 2,
 });
 const trainMs = Date.now() - t0;
