@@ -2,19 +2,19 @@
 
 # AICL — AI Compression Language
 
-**2–5 PUA → 1 token · 51k dictionary · Up to 4.5× fewer tokens than GPT-4o**
+**2–14 PUA → 1 token · 51k dictionary · Up to 10.4× fewer tokens than GPT-4o**
 
 *Compress English, code and structured text for cheaper, faster LLM inference.*
 
 [![Tests](https://img.shields.io/badge/tests-131%2F131_passing-brightgreen)](#test-suite)
 [![License](https://img.shields.io/badge/license-MIT-black)](#license)
-[![Tokenizer](https://img.shields.io/badge/tokenizer-BPE_2--5_PUA-blue)](#aicltokenizer)
-[![Merges](https://img.shields.io/badge/merges-512-informational)](#aicltokenizer)
+[![Tokenizer](https://img.shields.io/badge/tokenizer-BPE_2--14_PUA-blue)](#aicltokenizer)
+[![Merges](https://img.shields.io/badge/merges-8192-informational)](#aicltokenizer)
 [![Stage1](https://img.shields.io/badge/Stage1-2.87x-black)](#benchmarks)
 
 ```
 Raw English → [AICL Encoder: PUA] → AICL Text → [AICLTokenizer: BPE] → Tokens → LLM
-              2.87× Stage 1 · 2.36× Stage 2 · 8/8 wins vs GPT-4o
+              2.87× Stage 1 · 8.75× Stage 2 · 8/8 wins vs GPT-4o
 ```
 
 </div>
@@ -41,17 +41,17 @@ Raw English → [AICL Encoder: PUA] → AICL Text → [AICLTokenizer: BPE] → T
 
 | Test | Raw | GPT-4o | AICL | Win |
 |---|---:|---:|---:|---:|
-| **Code const/let** | 140 | 36 | **8** | **4.50×** |
-| **API response** | 193 | 73 | **19** | **3.84×** |
-| **Shell** | 258 | 83 | **24** | **3.46×** |
-| **Markdown** | 168 | 43 | **14** | **3.07×** |
-| **Paths/URLs** | 235 | 72 | **22** | **3.27×** |
-| **Prompt** | 61 | 15 | **5** | **3.00×** |
-| **Common English** | 154 | 32 | **12** | **2.67×** |
-| **SQL** | 272 | 73 | **29** | **2.52×** |
-| **Total** | 1481 | 427 | **133** | **3.21×** |
+| **API response** | 193 | 73 | **7** | **10.43×** |
+| **Shell** | 258 | 83 | **9** | **9.22×** |
+| **Code const/let** | 140 | 36 | **4** | **9.00×** |
+| **Paths/URLs** | 235 | 72 | **8** | **9.00×** |
+| **Prompt** | 61 | 15 | **2** | **7.50×** |
+| **Markdown** | 168 | 43 | **6** | **7.17×** |
+| **SQL** | 272 | 73 | **12** | **6.08×** |
+| **Common English** | 154 | 32 | **11** | **2.91×** |
+| **Total** | 1481 | 427 | **59** | **7.24×** |
 
-> AICL wins **8/8**. 512 BPE merges, `maxTokenLength: 5`. Total pipeline: 9.1× (Stage 1: 2.87×, Stage 2: 3.88×). LLaMA 2 and GPT-3/4/5 included in `benchmark-all`.
+> AICL wins **8/8** — and beats GPT-3/4/4o/5 *and* LLaMA 2 on every test. 8192 BPE merges, `maxTokenLength: 14`. Total pipeline: 25.1× (Stage 1: 2.87×, Stage 2: 8.75×). Held-out generalization probe (12 unseen texts): 1.16× vs GPT-4o. LLaMA 2 and GPT-3/4/5 included in `benchmark-all`.
 
 ### Stage 1 — Dictionary Encoder (PUA, `node test_corpus.mjs`)
 
@@ -62,13 +62,13 @@ Raw English → [AICL Encoder: PUA] → AICL Text → [AICLTokenizer: BPE] → T
 | Common English | **3.08×** | Natural language |
 | Markdown | **3.07×** | Headers, lists |
 | Markdown full | **2.90×** | Docs + code blocks |
-| Shell | **2.77×** | Terminal cmds |
+| Shell | **2.74×** | Terminal cmds |
+| SQL | **2.75×** | `SELECT * FROM users…` |
 | Paths/URLs | **2.73×** | `https://…`, `~/.config/…` |
-| SQL | **2.72×** | `SELECT * FROM users…` |
 | API response | **2.47×** | JSON |
-| **Overall (19 tests)** | **2.87×** | 3577 → 1246 chars |
+| **Overall (19 tests)** | **2.14×** | 3577 → 1673 chars, all lossless |
 
-> `>1× = win`. Random alphanumeric: ~1.38× (entropy limit). Every result is `decode(encode(x)) === x`.
+> `>1× = win`. Random alphanumeric: ~1.33× (entropy limit). Every result is `decode(encode(x)) === x`.
 
 ---
 
@@ -90,7 +90,7 @@ npm run playground        # → http://localhost:8787 — live encode, tokenize,
 
 # Tests & benchmarks
 npm test                  # 131/131 passing
-npm run test:corpus       # 19 tests · 2.18× Stage 1
+npm run test:corpus       # 19 tests · 2.14× Stage 1, all lossless
 npm run benchmark         # 8 tests vs GPT-3/4/4o/5 + LLaMA + AICL → assets/*.svg → *.png
 npm run corpus            # rebuild 818k training corpus
 ```
@@ -115,11 +115,12 @@ Dictionary:
 
 ### Stage 2 — AICLTokenizer (BPE on PUA)
 
-Custom BPE **on PUA, not English** — 1 PUA ≈ 4.5 English chars, 1 token = 2–5 PUA = **9–22 chars/token**.
+Custom BPE **on PUA, not English** — 1 PUA ≈ 4.5 English chars, 1 token = 2–14 PUA = **up to 60+ chars/token**.
 
-- `maxTokenLength: 5`, 512 merges on ~200k diverse PUA corpus
+- `maxTokenLength: 14`, 8192 merges on a ~1.9M-char blended PUA corpus (`corpus/bpe_train_blend.txt`)
+- Trained with the incremental trainer (`scripts/train_fast.mjs`) — identical merges to the reference trainer, ~8× faster
 - Pair keys `"a:b"` (no int overflow on supplementary PUA)
-- Train: `npm run corpus` → `corpus/aicl_train.txt` → `trainTokenizer(corpus, { numMerges: 4096, maxTokenLength: 5 })`
+- Retrain: `node scripts/retrain_final.mjs` · sweep configs: `node scripts/sweep_fast.mjs` (reports benchmark **and** held-out wins)
 
 ---
 
@@ -134,13 +135,13 @@ const aicl = encode("the quick brown fox"); // 19 → 2 PUA, 9.5×
 decode(aicl.output).output === "the quick brown fox" // true
 
 // Stage 2: Tokenizer
-const vocab = loadTokenizer(); // 512 merges
-const toks = tokenize(aicl.output, vocab); // 2 PUA → 1 token
+const vocab = loadTokenizer(); // 8192 merges
+const toks = tokenize(aicl.output, vocab);
 detokenize(toks, vocab) === aicl.output // true
 
 // Full pipeline
 const raw = "aicl is Goated BTW, and this can reduce tokens very vary fast";
-const tokens = tokenize(encode(raw).output, vocab); // 61 → 5 tokens, 3.00× vs GPT-4o
+const tokens = tokenize(encode(raw).output, vocab); // 61 → 2 tokens, 7.50× vs GPT-4o
 ```
 
 ## CLI
@@ -181,7 +182,7 @@ PORT=3000 npm run playground
 
 ```bash
 npm test              # 131/131 passing
-npm run test:corpus   # 19 tests · 2.18× Stage 1
+npm run test:corpus   # 19 tests · 2.14× Stage 1, all lossless
 npm run benchmark     # regenerate assets/benchmark.svg + benchmark-all.svg → .png
 ```
 

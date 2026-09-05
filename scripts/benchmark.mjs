@@ -79,7 +79,7 @@ function barRect(x, y, w, h, fill, rx = 4, extra='') {
 <style>.t{font:700 17px 'Stack Sans Notch','Inter',system-ui,sans-serif;fill:#f9fafb;letter-spacing:-0.3px}.s{font:400 11px 'Stack Sans Notch','Inter',system-ui,sans-serif;fill:#9ca3af}.n{font:600 10px 'Stack Sans Notch','Inter',system-ui,sans-serif;fill:#e5e7eb}.a{font:400 9px 'Stack Sans Notch','Inter',system-ui,sans-serif;fill:#6b7280}</style>
 <rect width="${W}" height="${H}" rx="16" fill="${PALETTE.bg}"/>
 <text x="32" y="34" class="t">AICL vs GPT-4o — tokens (lower is better)</text>
-<text x="32" y="52" class="s">2–5 PUA → 1 token · ${vocab.numMerges} merges · max 5 PUA/token · 8 tests · 131/131 pass</text>
+<text x="32" y="52" class="s">2–14 PUA → 1 token · ${vocab.numMerges} merges · max ${vocab.maxTokenLength} PUA/token · 8 tests · 131/131 pass</text>
 <g transform="translate(32,66)">
   <rect x="0" y="0" width="10" height="10" rx="2" fill="#27272a"/><text x="14" y="9" class="s">GPT-4o (o200k_base)</text>
   <rect x="140" y="0" width="10" height="10" rx="2" fill="${PALETTE.aicl}"/><text x="154" y="9" class="s">AICLTokenizer</text>
@@ -134,11 +134,13 @@ ${groups}
     <text x="${x+groupW/2}" y="530" text-anchor="middle" fill="#a78bfa" font-size="7" font-weight="700">${win}×</text>
   </g>`;
   });
+  const best = [...rows].sort((a, b) => b.win - a.win).slice(0, 4);
+  const bestStr = best.map(r => `${r.name === 'Common English' ? 'Eng' : r.name} ${r.win}×`).join(', ');
   const svg2 = `<svg width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg">
 <style>.t{font:700 17px 'Stack Sans Notch','Inter',system-ui,sans-serif;fill:#f9fafb;letter-spacing:-0.3px}.s{font:400 11px 'Stack Sans Notch','Inter',system-ui,sans-serif;fill:#9ca3af}.n{font:600 9px 'Stack Sans Notch','Inter',system-ui,sans-serif;fill:#e5e7eb}.a{font:400 8px 'Stack Sans Notch','Inter',system-ui,sans-serif;fill:#6b7280}</style>
 <rect width="${W}" height="${H}" rx="16" fill="${PALETTE.bg}"/>
 <text x="32" y="34" class="t">AICL vs All Tokenizers — 8 tests</text>
-<text x="32" y="52" class="s">tokens — lower is better · GPT-3/4/4o/5 + LLaMA 2 + AICL (${vocab.numMerges} merges, 2–5 PUA → 1 token)</text>
+<text x="32" y="52" class="s">tokens — lower is better · GPT-3/4/4o/5 + LLaMA 2 + AICL (${vocab.numMerges} merges, 2–${vocab.maxTokenLength} PUA → 1 token)</text>
 <g transform="translate(32,64)">
   <rect x="0" y="0" width="10" height="10" rx="2" fill="${PALETTE.gpt3}"/><text x="14" y="9" class="s">GPT-3</text>
   <rect x="58" y="0" width="10" height="10" rx="2" fill="${PALETTE.gpt4}"/><text x="72" y="9" class="s">GPT-4</text>
@@ -157,7 +159,7 @@ ${[0,0.25,0.5,0.75,1].map(f=>{
 }).join('')}
 ${groups}
 <line x1="32" y1="520" x2="868" y2="520" stroke="${PALETTE.grid}"/>
-<text x="32" y="540" class="s">AICL wins 8/8 — best: Code 4.50×, API 3.84×, Shell 3.46×, Markdown 3.07× · Lower = cheaper</text>
+<text x="32" y="540" class="s">AICL wins 8/8 — best: ${bestStr} · Lower = cheaper</text>
 <text x="32" y="558" class="s">github.com/vspcoderz/aicl · 131/131 pass · 8 tests · 6 tokenizers</text>
 </svg>`;
   writeFileSync('assets/benchmark-all.svg', svg2);
