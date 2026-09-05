@@ -12,9 +12,8 @@
  *    compress. Alias rules are emitted first in the vocab (lowest ranks),
  *    learned collocation merges follow.
  *
- * Argmax uses a lazy max-heap (count desc, pair-key asc tie-break — same
- * selection rule as the reference trainer) so 65k merges don't each require
- * a full scan of the pair-count map.
+ * Argmax is a linear scan over pairCounts (bounded by the PUA alphabet,
+ * ~1.3M pair types max — a heap's memory cost outweighs the scan).
  */
 const CP_BASE = 0x1000000;
 const ALIAS_FLAG = 0x40000000; // synthetic alias ids: 0x40000000 + codePoint, int32-safe
@@ -31,6 +30,15 @@ export function trainTokenizerFast(aiclCorpus, opts = {}) {
   // corpus). Keeps merge-loop cost flat on huge corpora while preserving
   // stratification across corpus blocks.
   const learnEvery = opts.learnEvery ?? 1;
+  // Real-text corpora contain whitespace runs (double spaces, code indent)
+  // whose (ws,ws) pairs self-merge forever — (SP,SP)->S2, (S2,S2)->S4, ...
+  // burning the whole merge budget. Learned merges skip them; aliases are
+  // unaffected. Off by default so non-alias mode stays reference-identical.
+  const skipDegenerate = opts.skipDegeneratePairs === true;
+  const isWsId = (id) =>
+    id === CP_BASE + 0x20 || id === CP_BASE + 0x09 || id === CP_BASE + 0x0a ||
+    id === CP_BASE + 0x100406 /* space symbol */ ||
+    id === CP_BASE + 0x100801 /* MOD_TRAIL_SPACE */;
 
   const cpToId = (ch) => CP_BASE + ch.codePointAt(0);
   const seqs = aiclCorpus.map((t) => Array.from(t, cpToId));
@@ -60,16 +68,19 @@ export function trainTokenizerFast(aiclCorpus, opts = {}) {
 
   // aliases first, most frequent symbol first (deterministic ranks)
   const aliasList = [...aliasFreq.entries()].sort((x, y) => y[1] - x[1] || x[0] - y[0]);
+  const aliasMergedId = new Map(); // cp -> runtime mergedId
   for (const [cp] of aliasList) {
     const id = mergeBase + merges.size;
     merges.set(id, { a: CP_BASE + cp, b: tspId, rank: merges.size, alias: true });
     tokenLen.set(id, 2);
+    aliasMergedId.set(cp, id);
   }
 
   // interleaved learning subset
   const learnSeqs = learnEvery > 1 ? seqs.filter((_, i) => i % learnEvery === 0) : seqs;
 
   const addPair = (a, b, d) => {
+    if (skipDegenerate && d > 0 && (a === b || (isWsId(a) && isWsId(b)))) return;
     if ((tokenLen.get(a) ?? 1) + (tokenLen.get(b) ?? 1) > maxTokenLen) return;
     const k = a + ':' + b;
     const c = (pairCounts.get(k) || 0) + d;
@@ -100,8 +111,12 @@ export function trainTokenizerFast(aiclCorpus, opts = {}) {
     const bestKey = pickBest();
     if (bestKey === null) break;
     const sep = bestKey.indexOf(':');
-    const a = Number(bestKey.slice(0, sep));
-    const b = Number(bestKey.slice(sep + 1));
+    let a = Number(bestKey.slice(0, sep));
+    let b = Number(bestKey.slice(sep + 1));
+    // internal alias ids -> runtime alias merged ids (runtime never sees
+    // ALIAS_FLAG ids; learned merges must compose with alias tokens)
+    if (a >= ALIAS_FLAG) a = aliasMergedId.get(a - ALIAS_FLAG);
+    if (b >= ALIAS_FLAG) b = aliasMergedId.get(b - ALIAS_FLAG);
     const mergedId = mergeBase + merges.size;
     merges.set(mergedId, { a, b, rank: merges.size });
     tokenLen.set(mergedId, (tokenLen.get(a) ?? 1) + (tokenLen.get(b) ?? 1));
@@ -131,6 +146,7 @@ export function trainTokenizerFast(aiclCorpus, opts = {}) {
         j++;
       }
       seqs[s] = next;
+      learnSeqs[s] = next;
     }
   }
 
