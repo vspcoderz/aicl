@@ -15,7 +15,7 @@
     <div class="mark">◈</div>
     <div>
       <div class="title">AICL Playground</div>
-      <div class="subtitle">2–5 PUA → 1 token · 51k dict · 512 merges — live encode &amp; tokenize</div>
+      <div class="subtitle" id="specSubtitle">2–14 PUA → 1 token · 51k dict — live encode &amp; tokenize</div>
     </div>
   </div>
   <div class="top-actions">
@@ -30,11 +30,12 @@
   <section class="hero">
     <div class="hero-kicker">AI Compression Language — live</div>
     <h1>Test the AICL tokenizer</h1>
-    <p>Paste any text and watch Stage 1 (PUA dictionary) + Stage 2 (BPE 2–5 PUA → 1 token) compress it in real time. Compare against GPT-3 / 4 / 4o / 5 and LLaMA 2.</p>
+    <p>Paste any text and watch Stage 1 (PUA dictionary) + Stage 2 (BPE 2–14 PUA → 1 token) compress it in real time. Compare against GPT-3 / 4 / 4o / 5 and LLaMA 2 — lossless roundtrip, every time.</p>
     <div class="chips">
-      <span class="chip">Stage 1 · 2.87× avg</span>
-      <span class="chip">Stage 2 · 3.88× compression</span>
-      <span class="chip strong">8/8 wins</span>
+      <span class="chip">Stage 1 · 2.87×</span>
+      <span class="chip" id="specChipStage2">Stage 2 · —</span>
+      <span class="chip" id="specChipPipeline">Pipeline · —</span>
+      <span class="chip strong">8/8 wins vs GPT-4o</span>
       <span class="chip ok">131/131 tests</span>
     </div>
   </section>
@@ -48,6 +49,7 @@
             <option value="">— Try an example —</option>
             <option value="english">Common English</option>
             <option value="code">Code — const/let</option>
+            <option value="modern">Modern JS — camelCase</option>
             <option value="sql">SQL</option>
             <option value="api">API response (JSON)</option>
             <option value="shell">Shell commands</option>
@@ -63,7 +65,7 @@
         <textarea id="input" spellcheck="false" placeholder="Type or paste anything — code, markdown, shell, JSON… Drop a .txt file here too."></textarea>
       </div>
       <div class="input-foot">
-        <span id="charCount" class="muted">0 chars · 0 words</span>
+        <span id="charCount" class="muted">0 chars · 0 words</span> <span class="muted small">· Ctrl+Enter to run</span>
         <div class="toggles">
           <label><input type="checkbox" id="toggleSteps" checked/> steps</label>
           <label><input type="checkbox" id="toggleHex"/> hex</label>
@@ -147,7 +149,7 @@
   <section class="card foot-card">
     <div class="foot">
       <div><a href="https://github.com/vspcoderz/aicl">github.com/vspcoderz/aicl</a> · MIT</div>
-      <div class="muted small">512 merges · max 5 PUA/token · 51k dict · strictly local, no data leaves your machine (except optional server API).</div>
+      <div class="muted small" id="specFooter">51k dict · strictly local, no data leaves your machine (except optional server API).</div>
     </div>
   </section>
 </main>

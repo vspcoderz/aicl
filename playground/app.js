@@ -48,6 +48,7 @@ const EXAMPLES = {
   markdown: '# README.md ## Test Project ### Features - fast - simple - random ### Code `npm install && npm run dev` **bold** *italic* [link](https://example.com) > quote --- ### End',
   paths: 'C:\\Users\\Test\\file.txt D:\\Games\\MC\\server.exe /usr/bin/bash ~/.config/hypr/hyprland.conf ../../src/main.js ./build/output.log https://example.com/?a=1&b=2 ftp://x@y.z:21/path git@host:user/repo.git user@example.com test+tag@example.org',
   prompt: 'aicl is Goated BTW, and this can reduce tokens very vary fast',
+  modern: 'export const useAuth = () => {\n  const [user, setUser] = useState(null);\n  const login = async (email, password) => {\n    const res = await fetch("/api/login", { method: "POST", body: JSON.stringify({ email, password }) });\n    if (!res.ok) throw new Error("login failed");\n    setUser(await res.json());\n  };\n  return { user, login, logout };\n};',
   huge: 'the quick brown fox jumps over the lazy dog this is a test of the emergency broadcast system how now brown cow the rain in spain stays mainly on the plain we are testing the aicl compression algorithm which should compress english text into unicode private use area symbols and then tokenize those symbols with bpe to produce fewer tokens than gpt-4o would use for the same text the goal is to reduce api costs and improve inference speed when sending prompts to large language models the encoder uses a dictionary of fifty one thousand entries including words code patterns and common phrases each entry maps to a unicode character in the private use area the tokenizer then merges these symbols using byte pair encoding to create multi-symbol tokens which further reduces the token count',
 };
 
@@ -227,10 +228,11 @@ const TOKEN_COLORS = [
 function tokenColoredSpans(aicl, tokenMap) {
   if (!aicl || !tokenMap || !tokenMap.length) return esc(aicl || '—');
   const chars = [...aicl];
+  const total = Math.max(...tokenMap) + 1;
   return chars.map((ch, i) => {
     const tokIdx = tokenMap[i];
     const color = TOKEN_COLORS[tokIdx % TOKEN_COLORS.length];
-    return `<span class="tok" style="background:${color}22;color:${color};border-bottom:2px solid ${color}" title="token ${tokIdx}">${esc(ch)}</span>`;
+    return `<span class="tok" style="background:${color}22;color:${color};border-bottom:2px solid ${color}" title="token ${tokIdx + 1} of ${total}">${esc(ch)}</span>`;
   }).join('');
 }
 
@@ -243,7 +245,7 @@ function rawTokenColoredSpans(rawText, rawToAicl, tokenMap) {
     const tokIdx = aiclIdx >= 0 && aiclIdx < tokenMap.length ? tokenMap[aiclIdx] : -1;
     if (tokIdx < 0) return esc(ch);
     const color = TOKEN_COLORS[tokIdx % TOKEN_COLORS.length];
-    return `<span class="tok" style="background:${color}22;color:${color};border-bottom:2px solid ${color}" title="token ${tokIdx}">${esc(ch)}</span>`;
+    return `<span class="tok" style="background:${color}22;color:${color};border-bottom:2px solid ${color}" title="token ${tokIdx + 1} of ${Math.max(...tokenMap) + 1}">${esc(ch)}</span>`;
   }).join('');
 }
 
@@ -255,7 +257,7 @@ function render(data, hex, useSteps, useHeatmap) {
   elKpiAicl.textContent = String(stats.aiclChars);
   elKpiTokens.textContent = String(stats.aiclTokens);
   elKpiStage1.textContent = `${stats.stage1x}× · ${stats.aiclChars} PUA`;
-  elKpiStage2.textContent = `${stats.stage2x}× · 2–5 PUA/token · ${vocab.maxTokenLength} max`;
+  elKpiStage2.textContent = `${stats.stage2x}× · 2–${vocab.maxTokenLength} PUA/token · ${stats.aiclTokens ? (stats.aiclChars / stats.aiclTokens).toFixed(1) : '—'} PUA/token avg`;
   elKpiWin.textContent = stats.winVsGpt4o ? `${stats.winVsGpt4o}×` : '—';
   elKpiWin.style.color = stats.winVsGpt4o >= 2 ? '#10b981' : stats.winVsGpt4o >= 1.2 ? '#a3e635' : '#9ca3af';
   elKpiSave.textContent = stats.winVsGpt4o ? `save ${stats.savePct}% vs GPT-4o` : 'no savings';
@@ -289,7 +291,7 @@ function render(data, hex, useSteps, useHeatmap) {
   // Tokens
   const ids = pipeline.tokenIds;
   elPipeTokens.textContent = ids.length ? (hex ? ids.join(' ') : `${ids.slice(0, 120).join(' ')}${ids.length > 120 ? ' …' : ''}`) : '—';
-  elPipeTokensMeta.textContent = `${ids.length} tokens · vocab ${vocab.merges} merges`;
+  elPipeTokensMeta.textContent = `${ids.length} tokens · ${stats.aiclTokens ? (stats.aiclChars / stats.aiclTokens).toFixed(1) : '—'} PUA/token avg · vocab ${vocab.merges} merges`;
 
   // Roundtrip
   elRoundtrip.textContent = pipeline.roundtripOk ? `✓ Roundtrip OK — decode(encode(x)) === x` : `✗ Roundtrip FAILED`;
@@ -315,7 +317,7 @@ function render(data, hex, useSteps, useHeatmap) {
   if (useSteps && pipeline.steps) {
     elStepsMeta.textContent = `${pipeline.steps.length} steps`;
     elSteps.innerHTML = pipeline.steps.slice(0, 260).map(s => {
-      if (s.type === 'match') return `<div class="step ok"><b>match</b> ${esc(s.pattern)} → <em>${hex ? hexOf(s.symbol) : s.symbol}</em> @${s.pos}</div>`;
+      if (s.type === 'match') return `<div class="step ok"><b>match</b> ${esc(s.pattern)}${hex && s.symbol ? ` → <em>${hexOf(s.symbol)}</em>` : ''} @${s.pos}</div>`;
       if (s.type === 'base') return `<div class="step ok"><b>base</b> ${esc(s.pattern)} @${s.pos}</div>`;
       if (s.type === 'modifier') return `<div class="step"><b>modifier</b> ${esc(s.name)} @${s.pos}</div>`;
       if (s.type === 'fragment') return `<div class="step"><b>fragment</b> ${esc(s.pattern)} @${s.pos}</div>`;
@@ -340,6 +342,26 @@ elToggleHeatmap.addEventListener('change', () => { if (lastData) render(lastData
 document.addEventListener('keydown', e => {
   if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); run(); }
 });
+
+
+// --- Dynamic vocab specs (never stale: read from the loaded vocab via server) ---
+async function loadSpecs() {
+  try {
+    const res = await fetch('/api/health');
+    if (!res.ok) return;
+    const v = await res.json();
+    const range = `2–${v.maxTokenLength} PUA → 1 token`;
+    const el = document.getElementById('specSubtitle');
+    if (el) el.textContent = `${range} · 51k dict · ${v.merges} merges — live encode & tokenize`;
+    const foot = document.getElementById('specFooter');
+    if (foot) foot.textContent = `${v.merges} merges · max ${v.maxTokenLength} PUA/token · 51k dict · strictly local, no data leaves your machine (except optional server API).`;
+    const s2 = document.getElementById('specChipStage2');
+    if (s2) s2.textContent = `Stage 2 · up to ${v.maxTokenLength} PUA/token`;
+    const sp = document.getElementById('specChipPipeline');
+    if (sp) sp.textContent = `Pipeline · 25× total (bench)`;
+  } catch { /* offline — static text stays */ }
+}
+loadSpecs();
 
 // Init: load from URL hash or default
 const fromHash = loadFromHash();
