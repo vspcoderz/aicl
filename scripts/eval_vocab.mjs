@@ -8,6 +8,7 @@ import { encode } from '../src/encoder.js';
 import { decode } from '../src/decoder.js';
 import { tokenize, detokenize, loadTokenizer } from '../src/tokenizer/index.js';
 import { encode as gptEncode } from 'gpt-tokenizer';
+import { HELDOUT, HELDOUT_PROBES } from './heldout_probes.mjs';
 
 const BENCH = [
   ['Common English', 'the quick brown fox jumps over the lazy dog this is a test of the emergency broadcast system how now brown cow the rain in spain stays mainly on the plain'],
@@ -20,21 +21,8 @@ const BENCH = [
   ['Prompt', 'aicl is Goated BTW, and this can reduce tokens very vary fast'],
 ];
 
-// NEVER in training corpus — pure generalization probe
-const HELDOUT = [
-  'yesterday evening the deployment pipeline failed because the database migration timed out twice',
-  'the quarterly revenue report shows significant growth across all regional markets this year',
-  'function calculateTotal(items, taxRate) { return items.reduce((s, x) => s + x.price, 0) * (1 + taxRate); }',
-  'every morning the engineer reviews open pull requests before merging anything into main',
-  'INSERT INTO inventory (sku, quantity, warehouse) VALUES ($1, $2, $3) RETURNING id;',
-  'curl -fsSL https://releases.example.org/v2.tar.gz | tar -xz && ./install --prefix ~/.local',
-  '{"error": "rate limited", "retry_after": 30, "request_id": "req_8f2b91c4", "quota": {"remaining": 42}}',
-  'sudo systemctl restart nginx && tail -f /var/log/nginx/error.log | grep --color upstream',
-  'export const useAuth = () => { const [user, setUser] = useState(null); return { user, login, logout }; };',
-  '## Changelog ### 2.1.0 - **Added** streaming responses - _Fixed_ memory leak in worker pool',
-  'ssh -i ~/.ssh/id_ed25519 -p 2222 deploy@build.example.com "cd /srv/app && docker compose up -d"',
-  'the camera obscura predates photography by centuries yet works on the same optical principle',
-];
+// Full 50-probe held-out set lives in heldout_probes.mjs — none of it is in any
+// training corpus.
 
 const vocab = process.argv[2]
   ? (() => {
@@ -61,9 +49,13 @@ function evalSet(set) {
 }
 
 const b = evalSet(BENCH);
-const h = evalSet(HELDOUT.map((t, i) => ['held' + i, t]));
+const h = evalSet(HELDOUT);
 console.log(`vocab: ${vocab.numMerges} merges, maxLen=${vocab.maxTokenLength}`);
 console.log(`bench : total AICL=${b.tok} vs gpt4o=${b.gpt} win=${b.win.toFixed(2)}x min=${b.minWin.toFixed(2)} lossless=${b.lossless}`);
-for (const r of b.rows) console.log(`  ${r.name.padEnd(15)} AICL=${String(r.tok).padStart(3)} gpt4o=${String(r.gpt).padStart(3)} win=${r.win.toFixed(2)}x rt=${r.rt ? 'ok' : 'FAIL'}`);
-console.log(`held  : win=${h.win.toFixed(2)}x min=${h.minWin.toFixed(2)} lossless=${h.lossless}`);
-for (const r of h.rows) console.log(`  ${r.name.padEnd(15)} AICL=${String(r.tok).padStart(3)} gpt4o=${String(r.gpt).padStart(3)} win=${r.win.toFixed(2)}x`);
+for (const r of b.rows) console.log(`  ${r.name.padEnd(15)} AICL=${String(r.tok).padStart(3)} gpt4o=${String(r.g).padStart(3)} win=${r.win.toFixed(2)}x rt=${r.rt ? 'ok' : 'FAIL'}`);
+console.log(`held50: win=${h.win.toFixed(2)}x min=${h.minWin.toFixed(2)} lossless=${h.lossless}`);
+for (const [domain, lines] of Object.entries(HELDOUT_PROBES)) {
+  const d = evalSet(lines.map((t, i) => [`${domain}${i}`, t]));
+  console.log(`  ${domain.padEnd(9)} win=${d.win.toFixed(2)}x min=${d.minWin.toFixed(2)} lossless=${d.lossless}`);
+  for (const r of d.rows) if (!r.rt) console.log(`    ROUNDTRIP FAIL: ${r.name}`);
+}
