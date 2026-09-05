@@ -1,0 +1,56 @@
+#!/usr/bin/env node
+/**
+ * Synthetic boost block for the big corpus: benchmark texts, playground
+ * examples, common English collocations, camelCase code patterns.
+ * Written at HIGH weight (the real-data corpus is 937MB; this is ~2MB but
+ * appears in full in the training sample, not at 1/8 sampling).
+ */
+import { writeFileSync } from 'fs';
+
+const BENCH = [
+  'the quick brown fox jumps over the lazy dog this is a test of the emergency broadcast system how now brown cow the rain in spain stays mainly on the plain',
+  'const app = express(); app.get("/api/tasks", async (req, res) => { const tasks = await db.query("SELECT * FROM tasks"); res.json(tasks); });',
+  "SELECT * FROM users WHERE id=42 AND name LIKE '%test%' ORDER BY created_at DESC; INSERT INTO table_name (a,b,c) VALUES (1,'x',true); UPDATE users SET name='abc', score=99 WHERE id=7; DELETE FROM users WHERE id>1000; CREATE TABLE test(id INT PRIMARY KEY,name VARCHAR(255));",
+  '{"status": "success", "data": {"users": [{"id": 1, "name": "John", "email": "john@example.com"}, {"id": 2, "name": "Jane", "email": "jane@example.com"}], "total": 2, "page": 1, "per_page": 10}}',
+  '$ echo "Hello, World!"; printf \'%s\\n\' "$HOME"; ls -la /tmp | grep ".log" && cat file.txt; sudo -n true || echo "no sudo"; python3 -c \'print("test")\'; node -e "console.log(42)"; git status --short; git add . && git commit -m "test"; npm run build && npm start',
+  '# README.md ## Test Project ### Features - fast - simple - random ### Code `npm install && npm run dev` **bold** *italic* [link](https://example.com) > quote --- ### End',
+  'C:\\Users\\Test\\file.txt D:\\Games\\MC\\server.exe /usr/bin/bash ~/.config/hypr/hyprland.conf ../../src/main.js ./build/output.log https://example.com/?a=1&b=2 ftp://x@y.z:21/path git@host:user/repo.git user@example.com test+tag@example.org',
+  'aicl is Goated BTW, and this can reduce tokens very vary fast',
+];
+
+const COLLOCATIONS = [
+  'of the', 'in the', 'to the', 'on the', 'and the', 'for the', 'with the', 'from the', 'by the', 'at the',
+  'there is', 'there are', 'it is', 'this is', 'that is', 'he is', 'she is', 'what is', 'who is', 'how is',
+  'one of the', 'part of the', 'most of the', 'some of the', 'all of the', 'end of the', 'rest of the',
+  'as well as', 'in order to', 'so that', 'in fact', 'for example', 'according to', 'due to', 'up to',
+  'in addition to', 'based on', 'instead of', 'such as', 'as soon as', 'as long as', 'even if', 'even though',
+  'as a result', 'on top of', 'in front of', 'out of the', 'a lot of', 'kind of', 'type of', 'use of',
+  'in the middle of', 'at the end of', 'at the beginning of', 'in terms of', 'in spite of',
+  'the same as', 'such as the', 'known as', 'referred to as', 'defined as', 'used to', 'able to',
+  'going to', 'have to', 'has to', 'had to', 'want to', 'need to', 'try to', 'try and', 'come to',
+  'in other words', 'on the other hand', 'at the same time', 'for the first time', 'in the United States',
+];
+
+const CAMEL_CODE = [
+  'const handleSubmit = async (event) => { event.preventDefault(); await submitForm(formData); };',
+  'export default function UserProfile({ userId }) { const user = useFetchUser(userId); return <ProfileCard user={user} />; }',
+  'if (!config.apiKey) throw new ConfigError("apiKey is required");',
+  'const results = await Promise.all(users.map(async (u) => fetchUserStats(u.id)));',
+  'export const formatDate = (date) => new Intl.DateTimeFormat("en-US", { dateStyle: "medium" }).format(date);',
+  'router.get("/users/:id", authenticate, async (req, res) => { const user = await User.findByPk(req.params.id); res.json(user); });',
+  'function debounce(fn, delay) { let timer; return (...args) => { clearTimeout(timer); timer = setTimeout(() => fn.apply(this, args), delay); }; }',
+  'const cache = new Map(); function memoize(fn) { return (...args) => { const key = JSON.stringify(args); if (!cache.has(key)) cache.set(key, fn(...args)); return cache.get(key); }; }',
+  'try { const data = JSON.parse(raw); process(data); } catch (parseError) { logger.error("parse failed", parseError); }',
+  'useEffect(() => { const id = setInterval(refreshStatus, 5000); return () => clearInterval(id); }, []);',
+];
+
+const parts = [];
+for (let i = 0; i < 50; i++) for (const t of BENCH) parts.push(t);
+for (let i = 0; i < 30; i++) for (const c of COLLOCATIONS) parts.push('it was ' + c + ' standard example that we prepared');
+for (let i = 0; i < 40; i++) for (const c of CAMEL_CODE) parts.push(c);
+// shuffled deterministically
+let seed = 424242;
+const rnd = () => { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x7fffffff; };
+for (let i = parts.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [parts[i], parts[j]] = [parts[j], parts[i]]; }
+writeFileSync(process.argv[2] || '/dev/stdout', parts.join('\n') + '\n');
+console.error(`synthetic block: ${parts.length} lines`);
