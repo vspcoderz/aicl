@@ -95,21 +95,29 @@ export function encode(text, opts={}){
           }
         } else {
           const lower=word.toLowerCase();
-          const baseSym=patternToSymbol.get(lower);
-          if(baseSym){
-            if(trackMapping) for(let j=i;j<i+lower.length;j++) rawToAicl[j]=aiclPos;
-            output+=baseSym; matches++; if(steps) steps.push({type:'base',pattern:lower,pos:i});
-            aiclPos++;
-            i+=lower.length;
-            if(word[0]!==lower[0]){
-              const cs=patternToSymbol.get('MOD_CAPS'); if(cs){ output+=cs; matches++; if(steps) steps.push({type:'modifier',name:'MOD_CAPS',pos:i}); aiclPos++; }
+          const capInitial=word[0]!==lower[0];
+          // A whole-word base symbol expands to the lowercase pattern and
+          // MOD_CAPS can only fix up the first char, so words with internal
+          // capitals (camelCase) must not use the base-symbol path. The
+          // fragment path below can capitalize each fragment individually.
+          const rest=word.slice(1);
+          if(rest===rest.toLowerCase()){
+            const baseSym=patternToSymbol.get(lower);
+            if(baseSym){
+              if(trackMapping) for(let j=i;j<i+lower.length;j++) rawToAicl[j]=aiclPos;
+              output+=baseSym; matches++; if(steps) steps.push({type:'base',pattern:lower,pos:i});
+              aiclPos++;
+              i+=lower.length;
+              if(capInitial){
+                const cs=patternToSymbol.get('MOD_CAPS'); if(cs){ output+=cs; matches++; if(steps) steps.push({type:'modifier',name:'MOD_CAPS',pos:i}); aiclPos++; }
+              }
+              while(i<chars.length){
+                const mn=punctuationToModifier(chars[i]);
+                if(mn){ const ms=patternToSymbol.get(mn); if(ms){ output+=ms; matches++; if(steps) steps.push({type:'modifier',name:mn,pos:i}); aiclPos++; i++; continue; } }
+                break;
+              }
+              continue;
             }
-            while(i<chars.length){
-              const mn=punctuationToModifier(chars[i]);
-              if(mn){ const ms=patternToSymbol.get(mn); if(ms){ output+=ms; matches++; if(steps) steps.push({type:'modifier',name:mn,pos:i}); aiclPos++; i++; continue; } }
-              break;
-            }
-            continue;
           }
           let fragI=0, matchedFrag=false;
           const fragPatterns = getFragmentPatterns(sortedPatterns);
@@ -117,18 +125,29 @@ export function encode(text, opts={}){
             let bestFrag=null, bestFragLen=0;
             for(const frag of fragPatterns){
               if(frag.length <= lower.length - fragI && lower.startsWith(frag, fragI)){
-                bestFrag=frag; bestFragLen=frag.length; break;
+                // only usable when no capital falls INSIDE the fragment span:
+                // MOD_CAPS can capitalize the fragment's first char only
+                if(word.slice(fragI+1, fragI+frag.length) === lower.slice(fragI+1, fragI+frag.length)){
+                  bestFrag=frag; bestFragLen=frag.length; break;
+                }
               }
             }
             if(bestFrag){
               if(trackMapping) for(let j=i+fragI;j<i+fragI+bestFragLen;j++) rawToAicl[j]=aiclPos;
-              const fs=patternToSymbol.get(bestFrag); if(fs){ output+=fs; matches++; if(steps) steps.push({type:'fragment',pattern:bestFrag,pos:i+fragI}); aiclPos++; fragI+=bestFragLen; matchedFrag=true; continue; }
+              const fs=patternToSymbol.get(bestFrag);
+              if(fs){
+                output+=fs; matches++; if(steps) steps.push({type:'fragment',pattern:bestFrag,pos:i+fragI}); aiclPos++;
+                if(word[fragI]!==lower[fragI]){
+                  const cs=patternToSymbol.get('MOD_CAPS');
+                  if(cs){ output+=cs; matches++; if(steps) steps.push({type:'modifier',name:'MOD_CAPS',pos:i+fragI}); aiclPos++; }
+                }
+                fragI+=bestFragLen; matchedFrag=true; continue;
+              }
             }
             break;
           }
           if(matchedFrag && fragI>0){
             i+=fragI;
-            if(word[0]!==lower[0]){ const cs=patternToSymbol.get('MOD_CAPS'); if(cs){ output+=cs; matches++; if(steps) steps.push({type:'modifier',name:'MOD_CAPS',pos:i}); aiclPos++; } }
             while(i<chars.length){
               const mn=punctuationToModifier(chars[i]);
               if(mn){ const ms=patternToSymbol.get(mn); if(ms){ output+=ms; matches++; if(steps) steps.push({type:'modifier',name:mn,pos:i}); aiclPos++; i++; continue; } }
