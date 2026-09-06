@@ -22,7 +22,6 @@
  * ~1.3M pair types max — a heap's memory cost outweighs the scan).
  */
 const CP_BASE = 0x1000000;
-const ALIAS_FLAG = 0x40000000; // synthetic alias ids: 0x40000000 + codePoint, int32-safe
 
 export function trainTokenizerFast(aiclCorpus, opts = {}) {
   const numMerges = opts.numMerges ?? 4096;
@@ -30,16 +29,17 @@ export function trainTokenizerFast(aiclCorpus, opts = {}) {
   const maxTokenLen = opts.maxTokenLength ?? 5;
   const minFreq = opts.minFrequency ?? 2;
   const aliasTSp = opts.aliasTrailingSpace === true;
-  // The encoder emits inter-word spaces in TWO forms: the ' ' dictionary
-  // symbol (U+100406) and the MOD_TRAIL_SPACE modifier (U+100801). Both must
-  // be aliased or the un-aliased form's (word, space) pairs eat the merge
-  // budget. Two disjoint synthetic-id ranges keep training ids unique.
+  // The encoder emits inter-word space in MANY forms: the ' ' dictionary
+  // symbol (U+100406), the MOD_TRAIL_SPACE modifier (U+100801) and the
+  // space-run dict symbols (2..7, 8, 12, 16 spaces). Every form a word can
+  // be followed by needs aliasing, or un-aliased (word, space) pairs eat the
+  // merge budget. Alias flag ranges: 0x40000000 + formIdx * 0x1000000 + cp.
   const tspCps = opts.trailingSpaceCodePoints ??
-    (opts.trailingSpaceCodePoint ? [opts.trailingSpaceCodePoint] : [0x100801]);
+    [0x100406, 0x100801, 0x10ae54, 0x10ae55, 0x10ae56, 0x10ae57, 0x10ae58, 0x10ae72, 0x10ae73, 0x10ae74, 0x10ae75];
   const tspIds = tspCps.map((c) => CP_BASE + c);
-  const ALIAS_FLAG2 = 0x41000000; // form-1 alias ids: 0x41000000 + codePoint
-  const ALIAS_LIMIT = 0x42000000;
-  const aliasFlagOf = (formIdx) => (formIdx === 0 ? ALIAS_FLAG : ALIAS_FLAG2);
+  const ALIAS_FLAG = 0x40000000;
+  const ALIAS_LIMIT = ALIAS_FLAG + tspCps.length * 0x1000000;
+  const aliasFlagOf = (formIdx) => ALIAS_FLAG + formIdx * 0x1000000;
   // Learn merges on an interleaved subset (aliases still cover the FULL
   // corpus). Keeps merge-loop cost flat on huge corpora while preserving
   // stratification across corpus blocks.
@@ -56,9 +56,18 @@ export function trainTokenizerFast(aiclCorpus, opts = {}) {
     // space-run dict symbols (2/4/8/12/16 spaces, dict/symbols.json) — their
     // runs are already covered by the symbols themselves; (run,run) learned
     // merges would just burn budget the same way raw ws self-merges did
-    (id >= CP_BASE + 0x10ae54 && id <= CP_BASE + 0x10ae58);
+    (id >= CP_BASE + 0x10ae54 && id <= CP_BASE + 0x10ae58) ||
+    (id >= CP_BASE + 0x10ae72 && id <= CP_BASE + 0x10ae75);
 
   const resume = Array.isArray(opts.initMerges) && opts.initMerges.length > 0;
+  // Capitalized words emit (base, MOD_CAPS|MOD_ALLCAPS, space-form) triples —
+  // without caps aliasing, every capitalized word costs 2-3 tokens while a
+  // lowercase word costs 1. The pre-pass fuses the triple into ONE synthetic
+  // token; at runtime it decomposes as (base) + alias(MOD,space). Flag space:
+  // 0x42000000 + kind*0x400000 + form*0x200000 + cp  (kind 0=CAPS 1=ALLCAPS).
+  const MOD_CAPS_CP = 0x100800, MOD_ALLCAPS_CP = 0x100811;
+  const CAPS_FLAG = 0x50000000, CAPS_LIMIT = 0x58000000;
+  const capsFlagOf = (kind, form, cp) => CAPS_FLAG + kind * 0x400000 + form * 0x200000 + cp;
 
   const cpToId = (ch) => CP_BASE + ch.codePointAt(0);
   const seqs = aiclCorpus.map((t) => Array.from(t, cpToId));
@@ -68,6 +77,8 @@ export function trainTokenizerFast(aiclCorpus, opts = {}) {
   const pairCounts = new Map(); // 'a:b' -> count
   const aliasMergedId = new Map(); // 'cp:form' -> runtime mergedId
   const aliasFreq = new Map(); // 'cp:form' -> occurrences (fresh runs only)
+  const capsMergedId = new Map(); // 'cp:kind:form' -> runtime mergedId
+  const capsFreq = new Map(); // 'cp:kind:form' -> occurrences (fresh runs only)
 
   if (resume) {
     // Seed from a prior vocab. Entries are [id, {a, b, rank, alias}] in rank
@@ -82,20 +93,40 @@ export function trainTokenizerFast(aiclCorpus, opts = {}) {
       }
     }
   } else if (aliasTSp) {
-    // ── alias pre-pass: (X, any-space-form) -> synthetic aliasId(X, form) ──
+    // ── alias pre-pass ──
+    // (X, space-form) → aliasId(X, form), and
+    // (X, MOD_CAPS|MOD_ALLCAPS, space-form) → capsAliasId(X, kind, form) so a
+    // capitalized word tokenizes as one token exactly like a lowercase one.
+    const isModCp = (cp) => cp === MOD_CAPS_CP || cp === MOD_ALLCAPS_CP;
     for (const seq of seqs) {
       let w = 0;
-      for (let i = 0; i < seq.length; i++) {
+      let i = 0;
+      while (i < seq.length) {
+        const cur = seq[i];
         const nxt = i + 1 < seq.length ? seq[i + 1] : -1;
-        const form = tspIds.indexOf(nxt);
-        if (form !== -1 && !tspIds.includes(seq[i])) {
-          const cp = seq[i] - CP_BASE;
-          const key = cp + ':' + form;
+        const nxt2 = i + 2 < seq.length ? seq[i + 2] : -1;
+        const cp = cur - CP_BASE;
+        const pairForm = tspIds.indexOf(nxt);
+        const modCp = nxt - CP_BASE;
+        const tripleForm = tspIds.indexOf(nxt2);
+        if (pairForm !== -1 && !tspIds.includes(cur)) {
+          const key = cp + ':' + pairForm;
           aliasFreq.set(key, (aliasFreq.get(key) || 0) + 1);
-          seq[w++] = aliasFlagOf(form) + cp;
-          i++;
+          seq[w++] = aliasFlagOf(pairForm) + cp;
+          i += 2;
+        } else if (tripleForm !== -1 && isModCp(modCp) && !tspIds.includes(cur) && !isModCp(cp)) {
+          const kind = modCp === MOD_ALLCAPS_CP ? 1 : 0;
+          const key = cp + ':' + kind + ':' + tripleForm;
+          capsFreq.set(key, (capsFreq.get(key) || 0) + 1);
+          // the (MOD,space) pair inside the triple still needs its own alias
+          // rule — it is the building block b of the emitted caps rule
+          const mkey = modCp + ':' + tripleForm;
+          aliasFreq.set(mkey, (aliasFreq.get(mkey) || 0) + 1);
+          seq[w++] = capsFlagOf(kind, tripleForm, cp);
+          i += 3;
         } else {
-          seq[w++] = seq[i];
+          seq[w++] = cur;
+          i++;
         }
       }
       seq.length = w;
@@ -111,6 +142,21 @@ export function trainTokenizerFast(aiclCorpus, opts = {}) {
       tokenLen.set(id, 2);
       aliasMergedId.set(key, id);
     }
+    // caps aliases: (base, alias(MOD,space)) — one rule per (word, modifier,
+    // space form) seen in the corpus, deterministic full coverage
+    const capsList = [...capsFreq.entries()].sort((x, y) => y[1] - x[1] || (x[0] < y[0] ? -1 : 1));
+    for (const [key] of capsList) {
+      const parts = key.split(':');
+      const cp = Number(parts[0]);
+      const kind = Number(parts[1]);
+      const form = Number(parts[2]);
+      const b = aliasMergedId.get((kind ? MOD_ALLCAPS_CP : MOD_CAPS_CP) + ':' + form);
+      if (b === undefined) continue;
+      const id = mergeBase + merges.size;
+      merges.set(id, { a: CP_BASE + cp, b, rank: merges.size, alias: true, caps: kind });
+      tokenLen.set(id, 3);
+      capsMergedId.set(key, id);
+    }
   }
 
   // ── alias translation: get the sequences onto runtime ids before counting.
@@ -124,9 +170,15 @@ export function trainTokenizerFast(aiclCorpus, opts = {}) {
     for (const seq of seqs) {
       for (let i = 0; i < seq.length; i++) {
         const id = seq[i];
-        if (id >= ALIAS_FLAG && id < ALIAS_LIMIT) {
-          const form = id >= ALIAS_FLAG2 ? 1 : 0;
-          seq[i] = aliasMergedId.get((id - (form ? ALIAS_FLAG2 : ALIAS_FLAG)) + ':' + form);
+        if (id >= CAPS_FLAG && id < CAPS_LIMIT) {
+          const rest = id - CAPS_FLAG;
+          const kind = Math.floor(rest / 0x400000);
+          const form = Math.floor((rest % 0x400000) / 0x200000);
+          const cp = rest % 0x200000;
+          seq[i] = capsMergedId.get(cp + ':' + kind + ':' + form);
+        } else if (id >= ALIAS_FLAG && id < ALIAS_LIMIT) {
+          const form = Math.floor((id - ALIAS_FLAG) / 0x1000000);
+          seq[i] = aliasMergedId.get((id - ALIAS_FLAG - form * 0x1000000) + ':' + form);
         }
       }
     }
