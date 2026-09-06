@@ -12,6 +12,12 @@
  *    compress. Alias rules are emitted first in the vocab (lowest ranks),
  *    learned collocation merges follow.
  *
+ * Resume mode (initMerges): seeds the merge table with a prior vocab (its
+ * alias rules). numMerges then counts TOTAL rules; the trainer re-fuses
+ * (symbol, space-form) adjacencies directly into the prefix's runtime alias
+ * ids and only LEARNS the remaining merges. Used for checkpoint-resume on
+ * the VPS where a host-level kill can reap the process without a trace.
+ *
  * Argmax is a linear scan over pairCounts (bounded by the PUA alphabet,
  * ~1.3M pair types max — a heap's memory cost outweighs the scan).
  */
@@ -48,12 +54,31 @@ export function trainTokenizerFast(aiclCorpus, opts = {}) {
     id === CP_BASE + 0x100406 /* space symbol */ ||
     id === CP_BASE + 0x100801 /* MOD_TRAIL_SPACE */;
 
+  const resume = Array.isArray(opts.initMerges) && opts.initMerges.length > 0;
+
   const cpToId = (ch) => CP_BASE + ch.codePointAt(0);
   const seqs = aiclCorpus.map((t) => Array.from(t, cpToId));
 
-  // ── alias pre-pass: (X, any-space-form) -> aliasId(X, form) ──
-  const aliasFreq = new Map(); // 'cp:form' -> occurrences
-  if (aliasTSp) {
+  const merges = new Map(); // mergedId -> {a, b, rank}
+  const tokenLen = new Map(); // id -> PUA length (immutable per id)
+  const pairCounts = new Map(); // 'a:b' -> count
+  const aliasMergedId = new Map(); // 'cp:form' -> runtime mergedId
+  const aliasFreq = new Map(); // 'cp:form' -> occurrences (fresh runs only)
+
+  if (resume) {
+    // Seed from a prior vocab. Entries are [id, {a, b, rank, alias}] in rank
+    // order, so tokenLen of a learned rule can look up earlier merged ids.
+    for (const [id, r] of opts.initMerges) {
+      const rule = r && typeof r === 'object' ? r : { a: r[0], b: r[1], rank: r[2] };
+      merges.set(id, { a: rule.a, b: rule.b, rank: rule.rank ?? merges.size, alias: rule.alias });
+      tokenLen.set(id, (tokenLen.get(rule.a) ?? 1) + (tokenLen.get(rule.b) ?? 1));
+      if (rule.alias && rule.a >= CP_BASE && !tspIds.includes(rule.a)) {
+        const form = tspIds.indexOf(rule.b);
+        if (form !== -1) aliasMergedId.set((rule.a - CP_BASE) + ':' + form, id);
+      }
+    }
+  } else if (aliasTSp) {
+    // ── alias pre-pass: (X, any-space-form) -> synthetic aliasId(X, form) ──
     for (const seq of seqs) {
       let w = 0;
       for (let i = 0; i < seq.length; i++) {
@@ -71,33 +96,27 @@ export function trainTokenizerFast(aiclCorpus, opts = {}) {
       }
       seq.length = w;
     }
+    // aliases first, most frequent symbol first (deterministic ranks)
+    const aliasList = [...aliasFreq.entries()].sort((x, y) => y[1] - x[1] || (x[0] < y[0] ? -1 : 1));
+    for (const [key] of aliasList) {
+      const sep = key.lastIndexOf(':');
+      const cp = Number(key.slice(0, sep));
+      const form = Number(key.slice(sep + 1));
+      const id = mergeBase + merges.size;
+      merges.set(id, { a: CP_BASE + cp, b: CP_BASE + tspCps[form], rank: merges.size, alias: true });
+      tokenLen.set(id, 2);
+      aliasMergedId.set(key, id);
+    }
   }
 
-  const merges = new Map(); // mergedId -> {a, b, rank}
-  const tokenLen = new Map(); // id -> PUA length (immutable per id)
-  const pairCounts = new Map(); // 'a:b' -> count
-
-  // aliases first, most frequent symbol first (deterministic ranks)
-  const aliasList = [...aliasFreq.entries()].sort((x, y) => y[1] - x[1] || (x[0] < y[0] ? -1 : 1));
-  const aliasMergedId = new Map(); // 'cp:form' -> runtime mergedId
-  for (const [key] of aliasList) {
-    const sep = key.lastIndexOf(':');
-    const cp = Number(key.slice(0, sep));
-    const form = Number(key.slice(sep + 1));
-    const id = mergeBase + merges.size;
-    merges.set(id, { a: CP_BASE + cp, b: CP_BASE + tspCps[form], rank: merges.size, alias: true });
-    tokenLen.set(id, 2);
-    aliasMergedId.set(key, id);
-  }
-
-  // ── alias translation: rewrite synthetic alias ids in the sequences to
-  // their runtime merged ids. Learned merges then count/scan/emit real ids —
-  // without this, the merge scan can never match an alias pair, its count
-  // never decrements, and pickBest() re-emits the same top pair forever. ──
-  // learnSeqs is built AFTER translation so counts, scans and emitted rules
-  // all share the runtime id space.
-  let learnSeqs = null;
-  if (aliasTSp) {
+  // ── alias translation: get the sequences onto runtime ids before counting.
+  // Fresh runs translate synthetic alias ids in place. Resume runs still hold
+  // raw (X, space-form) adjacencies (no synthetic pre-pass happened), so fuse
+  // them directly with the prefix's runtime alias ids. Either way, learned
+  // merges count/scan/emit real runtime ids — without this, the merge scan
+  // can never match an alias pair, its count never decrements, and pickBest()
+  // re-emits the same top pair forever.
+  if (aliasTSp && !resume) {
     for (const seq of seqs) {
       for (let i = 0; i < seq.length; i++) {
         const id = seq[i];
@@ -107,8 +126,24 @@ export function trainTokenizerFast(aiclCorpus, opts = {}) {
         }
       }
     }
+  } else if (aliasTSp && resume) {
+    for (const seq of seqs) {
+      let w = 0;
+      for (let i = 0; i < seq.length; i++) {
+        const nxt = i + 1 < seq.length ? seq[i + 1] : -1;
+        const form = tspIds.indexOf(nxt);
+        if (form !== -1 && !tspIds.includes(seq[i])) {
+          const aliasId = aliasMergedId.get((seq[i] - CP_BASE) + ':' + form);
+          if (aliasId !== undefined) { seq[w++] = aliasId; i++; }
+          else seq[w++] = seq[i];
+        } else {
+          seq[w++] = seq[i];
+        }
+      }
+      seq.length = w;
+    }
   }
-  learnSeqs = learnEvery > 1 ? seqs.filter((_, i) => i % learnEvery === 0) : seqs;
+  const learnSeqs = learnEvery > 1 ? seqs.filter((_, i) => i % learnEvery === 0) : seqs;
 
   const addPair = (a, b, d) => {
     if (skipDegenerate && d > 0 && (a === b || (isWsId(a) && isWsId(b)))) return;
@@ -138,7 +173,11 @@ export function trainTokenizerFast(aiclCorpus, opts = {}) {
     for (let i = 0; i < seq.length - 1; i++) addPair(seq[i], seq[i + 1], 1);
   }
 
-  for (let m = 0; m < numMerges; m++) {
+  // numMerges semantics: fresh runs = number of LEARNED merges (aliases come
+  // on top); resume runs = TOTAL rules incl. the prefix.
+  const learnTarget = resume ? Math.max(0, numMerges - merges.size) : numMerges;
+
+  for (let m = 0; m < learnTarget; m++) {
     const bestKey = pickBest();
     if (bestKey === null) break;
     const sep = bestKey.indexOf(':');
@@ -176,7 +215,8 @@ export function trainTokenizerFast(aiclCorpus, opts = {}) {
       // learnEvery===1 they are the same array, so this write covers both.
       learnSeqs[s] = next;
     }
+    if (opts.onProgress) opts.onProgress(m + 1, learnTarget, merges);
   }
 
-  return { merges, mergeBase, numMerges: merges.size, version: '1.1', maxTokenLength: maxTokenLen, aliases: aliasFreq.size };
+  return { merges, mergeBase, numMerges: merges.size, version: '1.1', maxTokenLength: maxTokenLen, aliases: resume ? aliasMergedId.size : aliasFreq.size };
 }
