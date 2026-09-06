@@ -1,6 +1,7 @@
 // AICL Playground — client side, talks to /api/tokenize with local fallback
 const $ = id => document.getElementById(id);
 const elInput = $('input');
+const elHighlight = $('highlight');
 const elExample = $('example');
 const elClear = $('clear');
 const elStatus = $('status');
@@ -16,13 +17,11 @@ const elKpiStage2 = $('kpiStage2');
 const elKpiWin = $('kpiWin');
 const elKpiSave = $('kpiSave');
 const elBars = $('bars');
-const elPipeRaw = $('pipeRaw');
-const elPipeAicl = $('pipeAicl');
 const elPipeAiclWrap = $('pipeAiclWrap');
-const elHeatmapLegend = $('heatmapLegend');
 const elPipeAiclMeta = $('pipeAiclMeta');
 const elPipeTokens = $('pipeTokens');
 const elPipeTokensMeta = $('pipeTokensMeta');
+const elPipeSummaryMeta = $('pipeSummaryMeta');
 const elRoundtrip = $('roundtrip');
 const elSteps = $('steps');
 const elStepsMeta = $('stepsMeta');
@@ -42,19 +41,22 @@ const elCopyAll = $('copyAll');
 const EXAMPLES = {
   english: 'the quick brown fox jumps over the lazy dog this is a test of the emergency broadcast system how now brown cow the rain in spain stays mainly on the plain',
   code: 'const app = express(); app.get("/api/tasks", async (req, res) => { const tasks = await db.query("SELECT * FROM tasks"); res.json(tasks); });',
-  sql: "SELECT * FROM users WHERE id=42 AND name LIKE '%test%' ORDER BY created_at DESC; INSERT INTO table_name (a,b,c) VALUES (1,'x',true); UPDATE users SET name='abc', score=99 WHERE id=7; DELETE FROM users WHERE id>1000; CREATE TABLE test(id INT PRIMARY KEY,name VARCHAR(255));",
+  modern: 'export const useAuth = () => {\n  const [user, setUser] = useState(null);\n  const login = async (email, password) => {\n    const res = await fetch("/api/login", { method: "POST", body: JSON.stringify({ email, password }) });\n    if (!res.ok) throw new Error("login failed");\n    setUser(await res.json());\n  };\n  return { user, login, logout };\n};',
+  sql: "SELECT c.name, COUNT(o.id) AS orders FROM customers c LEFT JOIN orders o ON o.customer_id = c.id GROUP BY c.id HAVING COUNT(o.id) > 5 ORDER BY orders DESC LIMIT 20;",
   api: '{"status": "success", "data": {"users": [{"id": 1, "name": "John", "email": "john@example.com"}, {"id": 2, "name": "Jane", "email": "jane@example.com"}], "total": 2, "page": 1, "per_page": 10}}',
   shell: '$ echo "Hello, World!"; printf \'%s\\n\' "$HOME"; ls -la /tmp | grep ".log" && cat file.txt; sudo -n true || echo "no sudo"; python3 -c \'print("test")\'; node -e "console.log(42)"; git status --short; git add . && git commit -m "test"; npm run build && npm start',
-  markdown: '# README.md ## Test Project ### Features - fast - simple - random ### Code `npm install && npm run dev` **bold** *italic* [link](https://example.com) > quote --- ### End',
+  markdown: '# Setup Guide\n\n## Prerequisites\n- Node 20 or later\n- A valid API key\n\n### Install\n```bash\nnpm install && npm run build\n```\n\n> **Note:** migration scripts are idempotent.\n\n---\n\n### Rollback\nUse `db rollback --steps 1` to undo.',
   paths: 'C:\\Users\\Test\\file.txt D:\\Games\\MC\\server.exe /usr/bin/bash ~/.config/hypr/hyprland.conf ../../src/main.js ./build/output.log https://example.com/?a=1&b=2 ftp://x@y.z:21/path git@host:user/repo.git user@example.com test+tag@example.org',
+  caps: 'LOL BRO WE GETTING LIKE LOTS OF FASTER SHIT THIS IS WHERE WE CAN LIKE LOSE TO GPT SHIT WHAT THE FUCK\n## ANNOUNCEMENT\n> THAT WE ARE NOT SAOASDH AJB AND YOUR THW WORSE SHIT WE CAN DO LIKE ATLEAST WE BEATING LLaMA 2 stuff',
+  ascii: 'Verified ✅\n\n┌──────────────┐\n│ Settings     │\n├──────────────┤\n│  Description │\n│  Support     │\n│   Privacy    │\n│    Terms     │\n│   Images     │\n│  Install     │\n└──────────────┘\n\n----\n== Section ==\n**bold** and __under__\n    indented code\n        deeper indent',
   prompt: 'aicl is Goated BTW, and this can reduce tokens very vary fast',
-  modern: 'export const useAuth = () => {\n  const [user, setUser] = useState(null);\n  const login = async (email, password) => {\n    const res = await fetch("/api/login", { method: "POST", body: JSON.stringify({ email, password }) });\n    if (!res.ok) throw new Error("login failed");\n    setUser(await res.json());\n  };\n  return { user, login, logout };\n};',
   huge: 'the quick brown fox jumps over the lazy dog this is a test of the emergency broadcast system how now brown cow the rain in spain stays mainly on the plain we are testing the aicl compression algorithm which should compress english text into unicode private use area symbols and then tokenize those symbols with bpe to produce fewer tokens than gpt-4o would use for the same text the goal is to reduce api costs and improve inference speed when sending prompts to large language models the encoder uses a dictionary of fifty one thousand entries including words code patterns and common phrases each entry maps to a unicode character in the private use area the tokenizer then merges these symbols using byte pair encoding to create multi-symbol tokens which further reduces the token count',
 };
 
 // State
 let lastData = null;
 let debounce = null;
+let hlScrollSync = false;
 
 // --- Utilities ---
 function words(s) { const t = s.trim(); return t ? t.split(/\s+/).length : 0; }
@@ -160,28 +162,25 @@ elCopyAll.addEventListener('click', () => {
 function schedule() {
   clearTimeout(debounce);
   elStatus.textContent = 'typing…';
+  renderHighlight();
   debounce = setTimeout(run, 180);
 }
 
 async function run() {
   const text = elInput.value;
-  const hex = elToggleHex.checked;
-  const useSteps = elToggleSteps.checked;
-  const useHeatmap = elToggleHeatmap.checked;
   elCharCount.textContent = `${[...text].length} chars · ${words(text)} words`;
-  elPipeRaw.textContent = text || '—';
 
   if (!text) {
     elStatus.textContent = 'waiting…';
     elKpiRaw.textContent = '—'; elKpiAicl.textContent = '—'; elKpiTokens.textContent = '—';
     elKpiStage1.textContent = ''; elKpiStage2.textContent = ''; elKpiWin.textContent = '—'; elKpiSave.textContent = '';
-    elBars.innerHTML = ''; elPipeAicl.textContent = '—'; elPipeAiclMeta.textContent = '';
+    elBars.innerHTML = ''; elPipeAiclWrap.innerHTML = '<pre class="pipe-pre mono">—</pre>'; elPipeAiclMeta.textContent = '';
     elPipeTokens.textContent = '—'; elPipeTokensMeta.textContent = '';
     elRoundtrip.textContent = 'Type something to see the pipeline.'; elRoundtrip.className = 'roundtrip';
     elSteps.innerHTML = ''; elStepsMeta.textContent = '';
     elPerfSection.style.display = 'none';
-    elHeatmapLegend.style.display = 'none';
     lastData = null;
+    renderHighlight();
     return;
   }
 
@@ -191,7 +190,7 @@ async function run() {
     if (!res.ok) throw new Error('api ' + res.status);
     const data = await res.json();
     lastData = data;
-    render(data, hex, useSteps, useHeatmap);
+    render(data);
     elStatus.textContent = `done · ${data.encodeMs}ms · ${data.vocab.merges} merges`;
   } catch (e) {
     elStatus.textContent = 'offline — run: npm run playground';
@@ -203,66 +202,86 @@ async function run() {
 
 // --- Token coloring: 20 distinct colors for token visualization ---
 const TOKEN_COLORS = [
-  '#3b82f6', // blue
-  '#f97316', // orange
-  '#10b981', // emerald
-  '#a855f7', // purple
-  '#ef4444', // red
-  '#06b6d4', // cyan
-  '#eab308', // yellow
-  '#ec4899', // pink
-  '#14b8a6', // teal
-  '#8b5cf6', // violet
-  '#f59e0b', // amber
-  '#22c55e', // green
-  '#6366f1', // indigo
-  '#e11d48', // rose
-  '#0ea5e9', // sky
-  '#d946ef', // fuchsia
-  '#84cc16', // lime
-  '#f43f5e', // rose-500
-  '#8b5cf6', // violet-500
-  '#0891b2', // cyan-600
+  '#3b82f6', '#f97316', '#10b981', '#a855f7', '#ef4444',
+  '#06b6d4', '#eab308', '#ec4899', '#14b8a6', '#8b5cf6',
+  '#f59e0b', '#22c55e', '#6366f1', '#e11d48', '#0ea5e9',
+  '#d946ef', '#84cc16', '#f43f5e', '#8b5cf6', '#0891b2',
 ];
 
+function tokenBg(tokIdx) {
+  const c = TOKEN_COLORS[tokIdx % TOKEN_COLORS.length];
+  return `background:${c}2e;color:${c}`;
+}
+
+/**
+ * Live token highlighting inside the input box: an overlay div under the
+ * transparent-text textarea renders the same text with per-token colors.
+ * Mirrors trailing newline (textarea shows one, div doesn't) and keeps
+ * scroll in sync. Hover on the AICL pipeline view outlines the same token
+ * here (data-tok hooks).
+ */
+function renderHighlight(cursorTok) {
+  const text = elInput.value;
+  if (!elToggleHeatmap.checked || !lastData || !lastData.pipeline.rawToAicl || !text) {
+    elHighlight.innerHTML = esc(text) + '\n';
+    return;
+  }
+  const { rawToAicl, tokenMap } = lastData.pipeline;
+  const chars = [...text];
+  const total = tokenMap.length ? Math.max(...tokenMap) + 1 : 0;
+  let html = '';
+  for (let i = 0; i < chars.length; i++) {
+    const aiclIdx = rawToAicl[i];
+    const tokIdx = aiclIdx >= 0 && aiclIdx < tokenMap.length ? tokenMap[aiclIdx] : -1;
+    if (tokIdx < 0) { html += esc(chars[i]); continue; }
+    const cls = tokIdx === cursorTok ? ' class="ht curr"' : ' class="ht"';
+    html += `<span${cls} data-tok="${tokIdx}" style="${tokenBg(tokIdx)}" title="token ${tokIdx + 1} of ${total}">${esc(chars[i])}</span>`;
+  }
+  elHighlight.innerHTML = html + '\n';
+}
+
+// keep overlay aligned while scrolling
+elInput.addEventListener('scroll', () => {
+  if (hlScrollSync) return;
+  hlScrollSync = true;
+  elHighlight.scrollTop = elInput.scrollTop;
+  elHighlight.scrollLeft = elInput.scrollLeft;
+  hlScrollSync = false;
+});
+
+// --- Pipeline views ---
 function tokenColoredSpans(aicl, tokenMap) {
   if (!aicl || !tokenMap || !tokenMap.length) return esc(aicl || '—');
   const chars = [...aicl];
   const total = Math.max(...tokenMap) + 1;
   return chars.map((ch, i) => {
     const tokIdx = tokenMap[i];
-    const color = TOKEN_COLORS[tokIdx % TOKEN_COLORS.length];
-    return `<span class="tok" style="background:${color}22;color:${color};border-bottom:2px solid ${color}" title="token ${tokIdx + 1} of ${total}">${esc(ch)}</span>`;
+    return `<span class="tok" data-tok="${tokIdx}" style="${tokenBg(tokIdx)}" title="token ${tokIdx + 1} of ${total}">${esc(ch)}</span>`;
   }).join('');
 }
 
-// Color raw input: each char gets the color of the token it maps to via rawToAicl→tokenMap
-function rawTokenColoredSpans(rawText, rawToAicl, tokenMap) {
-  if (!rawText || !rawToAicl || !tokenMap) return esc(rawText || '—');
-  const chars = [...rawText];
-  return chars.map((ch, i) => {
-    const aiclIdx = rawToAicl[i];
-    const tokIdx = aiclIdx >= 0 && aiclIdx < tokenMap.length ? tokenMap[aiclIdx] : -1;
-    if (tokIdx < 0) return esc(ch);
-    const color = TOKEN_COLORS[tokIdx % TOKEN_COLORS.length];
-    return `<span class="tok" style="background:${color}22;color:${color};border-bottom:2px solid ${color}" title="token ${tokIdx + 1} of ${Math.max(...tokenMap) + 1}">${esc(ch)}</span>`;
-  }).join('');
-}
+// hover a token in the pipeline → outline the same token in the input box
+document.addEventListener('mouseover', e => {
+  const t = e.target.closest?.('[data-tok]');
+  if (!t || !elToggleHeatmap.checked) return;
+  renderHighlight(Number(t.dataset.tok));
+});
+document.addEventListener('mouseout', e => {
+  if (e.target.closest?.('[data-tok]')) renderHighlight();
+});
 
-function render(data, hex, useSteps, useHeatmap) {
+function render(data) {
   const { stats, compare, pipeline, vocab, timings } = data;
 
-  // KPIs
   elKpiRaw.textContent = String(stats.rawChars);
   elKpiAicl.textContent = String(stats.aiclChars);
+  elKpiStage1.textContent = `${stats.stage1x}× stage 1`;
   elKpiTokens.textContent = String(stats.aiclTokens);
-  elKpiStage1.textContent = `${stats.stage1x}× · ${stats.aiclChars} PUA`;
-  elKpiStage2.textContent = `${stats.stage2x}× · 2–${vocab.maxTokenLength} PUA/token · ${stats.aiclTokens ? (stats.aiclChars / stats.aiclTokens).toFixed(1) : '—'} PUA/token avg`;
+  elKpiStage2.textContent = `${stats.stage2x}× stage 2 · ${stats.aiclTokens ? (stats.aiclChars / stats.aiclTokens).toFixed(1) : '—'} PUA/token`;
   elKpiWin.textContent = stats.winVsGpt4o ? `${stats.winVsGpt4o}×` : '—';
-  elKpiWin.style.color = stats.winVsGpt4o >= 2 ? '#10b981' : stats.winVsGpt4o >= 1.2 ? '#a3e635' : '#9ca3af';
-  elKpiSave.textContent = stats.winVsGpt4o ? `save ${stats.savePct}% vs GPT-4o` : 'no savings';
+  elKpiWin.style.color = stats.winVsGpt4o >= 1.2 ? '#10b981' : stats.winVsGpt4o >= 1 ? '#a3e635' : '#9ca3af';
+  elKpiSave.textContent = stats.winVsGpt4o ? `${stats.savePct}% vs GPT-4o` : 'no savings';
 
-  // Performance
   if (timings) {
     elPerfSection.style.display = '';
     elPerfStage1.textContent = timings.encodeMs != null ? `${timings.encodeMs.toFixed(1)}ms` : '—';
@@ -270,28 +289,17 @@ function render(data, hex, useSteps, useHeatmap) {
     elPerfTotal.textContent = timings.totalMs != null ? `${timings.totalMs.toFixed(1)}ms` : '—';
   }
 
-  // AICL output — token-colored or hex or plain
-  if (useHeatmap && !hex) {
-    elPipeAiclWrap.innerHTML = `<pre class="pipe-pre mono">${tokenColoredSpans(pipeline.aicl, pipeline.tokenMap)}</pre>`;
-    elHeatmapLegend.style.display = '';
-  } else {
-    elPipeAiclWrap.innerHTML = `<pre id="pipeAicl" class="pipe-pre mono">${hex ? [...pipeline.aicl].map(c => `${c} ${hexOf(c)}`).join('  ') : esc(pipeline.aicl || '— (all compressed)')}</pre>`;
-    elHeatmapLegend.style.display = 'none';
-  }
+  // AICL output — token-colored or hex
+  elPipeAiclWrap.innerHTML = elToggleHex.checked
+    ? `<pre class="pipe-pre mono">${[...pipeline.aicl].map(c => `${esc(c)} ${hexOf(c)}`).join('  ')}</pre>`
+    : `<pre class="pipe-pre mono">${tokenColoredSpans(pipeline.aicl, pipeline.tokenMap)}</pre>`;
   elPipeAiclMeta.textContent = `${pipeline.aiclLen} PUA chars · ${pipeline.matches} matches · ${pipeline.literals} literals`;
-
-  // Raw input — token-colored or plain
-  const text = elInput.value;
-  if (useHeatmap && pipeline.rawToAicl && pipeline.tokenMap) {
-    elPipeRaw.innerHTML = rawTokenColoredSpans(text, pipeline.rawToAicl, pipeline.tokenMap);
-  } else {
-    elPipeRaw.textContent = text || '—';
-  }
 
   // Tokens
   const ids = pipeline.tokenIds;
-  elPipeTokens.textContent = ids.length ? (hex ? ids.join(' ') : `${ids.slice(0, 120).join(' ')}${ids.length > 120 ? ' …' : ''}`) : '—';
-  elPipeTokensMeta.textContent = `${ids.length} tokens · ${stats.aiclTokens ? (stats.aiclChars / stats.aiclTokens).toFixed(1) : '—'} PUA/token avg · vocab ${vocab.merges} merges`;
+  elPipeTokens.textContent = ids.length ? (elToggleHex.checked ? ids.join(' ') : `${ids.slice(0, 120).join(' ')}${ids.length > 120 ? ' …' : ''}`) : '—';
+  elPipeTokensMeta.textContent = `${ids.length} tokens · vocab ${vocab.merges} merges · max ${vocab.maxTokenLength} PUA/token`;
+  elPipeSummaryMeta.textContent = `· ${pipeline.aiclLen} PUA → ${ids.length} tokens`;
 
   // Roundtrip
   elRoundtrip.textContent = pipeline.roundtripOk ? `✓ Roundtrip OK — decode(encode(x)) === x` : `✗ Roundtrip FAILED`;
@@ -307,27 +315,30 @@ function render(data, hex, useSteps, useHeatmap) {
     ['LLaMA 2', compare.llama, 'llama'],
     ['AICL', compare.aicl, 'aicl'],
   ];
+  const best = Math.min(...rows.map(r => r[1]));
   elBars.innerHTML = rows.map(([label, val, cls]) => {
     const w = Math.max(6, Math.round(val / max * 100));
-    const best = label === 'AICL' && val === Math.min(...rows.map(r => r[1]));
-    return `<div class="bar-row"><div class="bar-label">${label}${best ? ' ★' : ''}</div><div class="bar-track"><div class="bar-fill ${cls}" style="width:${w}%"></div></div><div class="bar-value">${val}</div></div>`;
+    const star = label === 'AICL' && val === best ? ' ★' : '';
+    return `<div class="bar-row"><div class="bar-label">${label}${star}</div><div class="bar-track"><div class="bar-fill ${cls}" style="width:${w}%"></div></div><div class="bar-value">${val}</div></div>`;
   }).join('');
 
   // Steps
-  if (useSteps && pipeline.steps) {
+  if (elToggleSteps.checked && pipeline.steps) {
     elStepsMeta.textContent = `${pipeline.steps.length} steps`;
     elSteps.innerHTML = pipeline.steps.slice(0, 260).map(s => {
-      if (s.type === 'match') return `<div class="step ok"><b>match</b> ${esc(s.pattern)}${hex && s.symbol ? ` → <em>${hexOf(s.symbol)}</em>` : ''} @${s.pos}</div>`;
-      if (s.type === 'base') return `<div class="step ok"><b>base</b> ${esc(s.pattern)} @${s.pos}</div>`;
+      if (s.type === 'match') return `<div class="step"><b>match</b> ${esc(s.pattern)}${elToggleHex.checked && s.symbol ? ` → <em>${hexOf(s.symbol)}</em>` : ''} @${s.pos}</div>`;
+      if (s.type === 'base') return `<div class="step"><b>base</b> ${esc(s.pattern)} @${s.pos}</div>`;
       if (s.type === 'modifier') return `<div class="step"><b>modifier</b> ${esc(s.name)} @${s.pos}</div>`;
       if (s.type === 'fragment') return `<div class="step"><b>fragment</b> ${esc(s.pattern)} @${s.pos}</div>`;
       if (s.type === 'literal') return `<div class="step lit"><b>literal</b> ${esc(s.char)} @${s.pos}</div>`;
       return `<div class="step">${esc(JSON.stringify(s))}</div>`;
     }).join('') + (pipeline.steps.length > 260 ? `<div class="muted small">… ${pipeline.steps.length - 260} more steps</div>` : '');
   } else {
-    elStepsMeta.textContent = useSteps ? 'no steps' : 'steps off';
-    elSteps.innerHTML = useSteps ? '<div class="muted small">No steps returned.</div>' : '<div class="muted small">Enable "steps" to see the greedy trie + word fallback trace.</div>';
+    elStepsMeta.textContent = elToggleSteps.checked ? 'no steps' : '';
+    elSteps.innerHTML = '';
   }
+
+  renderHighlight();
 }
 
 // --- Events ---
@@ -335,14 +346,13 @@ elInput.addEventListener('input', schedule);
 elExample.addEventListener('change', () => { const v = elExample.value; if (EXAMPLES[v]) { elInput.value = EXAMPLES[v]; schedule(); } });
 elClear.addEventListener('click', () => { elInput.value = ''; elExample.value = ''; schedule(); elInput.focus(); });
 elToggleSteps.addEventListener('change', () => run());
-elToggleHex.addEventListener('change', () => run());
-elToggleHeatmap.addEventListener('change', () => { if (lastData) render(lastData, elToggleHex.checked, elToggleSteps.checked, elToggleHeatmap.checked); });
+elToggleHex.addEventListener('change', () => { if (lastData) render(lastData); });
+elToggleHeatmap.addEventListener('change', () => { renderHighlight(); if (lastData) render(lastData); });
 
 // Keyboard shortcut
 document.addEventListener('keydown', e => {
   if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); run(); }
 });
-
 
 // --- Dynamic vocab specs (never stale: read from the loaded vocab via server) ---
 async function loadSpecs() {
@@ -350,15 +360,10 @@ async function loadSpecs() {
     const res = await fetch('/api/health');
     if (!res.ok) return;
     const v = await res.json();
-    const range = `2–${v.maxTokenLength} PUA → 1 token`;
     const el = document.getElementById('specSubtitle');
-    if (el) el.textContent = `${range} · 51k dict · ${v.merges} merges — live encode & tokenize`;
+    if (el) el.textContent = `2–${v.maxTokenLength} PUA → 1 token · 51k dict · ${v.merges} merges — live encode & tokenize`;
     const foot = document.getElementById('specFooter');
-    if (foot) foot.textContent = `${v.merges} merges · max ${v.maxTokenLength} PUA/token · 51k dict · strictly local, no data leaves your machine (except optional server API).`;
-    const s2 = document.getElementById('specChipStage2');
-    if (s2) s2.textContent = `Stage 2 · up to ${v.maxTokenLength} PUA/token`;
-    const sp = document.getElementById('specChipPipeline');
-    if (sp) sp.textContent = `Pipeline · 25× total (bench)`;
+    if (foot) foot.textContent = `${v.merges} merges · max ${v.maxTokenLength} PUA/token · 51k dict · strictly local — no data leaves your machine.`;
   } catch { /* offline — static text stays */ }
 }
 loadSpecs();
