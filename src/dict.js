@@ -37,6 +37,7 @@ export function loadRaw() {
  */
 const MODIFIER_TRANSFORMS = {
   MOD_CAPS:          (w) => w.charAt(0).toUpperCase() + w.slice(1),
+  MOD_ALLCAPS:       (w) => w.toUpperCase(),
   MOD_TRAIL_SPACE:   (w) => w + ' ',
   MOD_TRAIL_COMMA:   (w) => w + ',',
   MOD_TRAIL_PERIOD:  (w) => w + '.',
