@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>AICL Playground — Live Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./style.css"/>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <div class="mark">◈</div>
+    <div>
+      <div class="title">AICL Playground</div>
+      <div class="subtitle" id="specSubtitle">2–14 PUA → 1 token · 51k dict — live encode &amp; tokenize</div>
+    </div>
+  </div>
+  <div class="top-actions">
+    <button id="share" class="btn ghost" title="Copy shareable link">Share</button>
+    
+    
+    <a class="pill" href="https://github.com/vspcoderz/aicl" target="_blank" rel="noreferrer">GitHub</a>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="grid">
+    <div class="card input-card">
+      <div class="card-head">
+        <h2>Input</h2>
+        <div class="head-actions">
+          <select id="example" class="select">
+            <option value="">— Example —</option>
+            <option value="english">Common English</option>
+            <option value="code">Code — const/let</option>
+            <option value="modern">Modern JS — camelCase</option>
+            <option value="sql">SQL</option>
+            <option value="api">API response (JSON)</option>
+            <option value="shell">Shell commands</option>
+            <option value="markdown">Markdown</option>
+            <option value="paths">Paths / URLs</option>
+            <option value="caps">ALL-CAPS rant</option>
+            <option value="ascii">ASCII box / indents</option>
+            <option value="prompt">Prompt — Goated</option>
+            <option value="huge">Large block (1k chars)</option>
+          </select>
+          <button id="clear" class="btn ghost">Clear</button>
+        </div>
+      </div>
+      <div id="dropZone" class="input-stack">
+        <div id="highlight" class="input-hl" aria-hidden="true"></div>
+        <textarea id="input" spellcheck="false" autocomplete="off" placeholder="Type or paste anything — code, markdown, shell, JSON… Drop a .txt file here too."></textarea>
+      </div>
+      <div class="input-foot">
+        <span id="charCount" class="muted">0 chars · 0 words</span>
+        <span class="muted small">Ctrl+Enter to run</span>
+        <label class="toggle" title="Color each token in the input box">
+          <input type="checkbox" id="toggleHeatmap" checked/> tokens
+        </label>
+      </div>
+    </div>
+
+    <div class="card stats-card">
+      <div class="card-head"><h2>Results</h2><span id="status" class="muted">waiting…</span></div>
+
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-label">Raw chars</div><div id="kpiRaw" class="kpi-val">—</div></div>
+        <div class="kpi"><div class="kpi-label">AICL chars</div><div id="kpiAicl" class="kpi-val">—</div><div id="kpiStage1" class="kpi-sub"></div></div>
+        <div class="kpi highlight"><div class="kpi-label">AICL tokens</div><div id="kpiTokens" class="kpi-val">—</div><div id="kpiStage2" class="kpi-sub"></div></div>
+        <div class="kpi"><div class="kpi-label">vs GPT-4o</div><div id="kpiWin" class="kpi-val win">—</div><div id="kpiSave" class="kpi-sub"></div></div>
+      </div>
+
+      <div class="perf-line mono" id="perfSection" style="display:none">encode <span id="perfStage1">—</span> · tokenize <span id="perfStage2">—</span> · total <span id="perfTotal">—</span></div>
+
+      <div class="compare">
+        <div class="compare-head">Tokens (lower is better)</div>
+        <div id="bars" class="bars"></div>
+        <div class="legend">
+          <span><i class="dot gpt4o"></i> Raw ÷ 4 (≈GPT-4o)</span>
+          <span><i class="dot llama"></i> Raw ÷ 3 (≈LLaMA 2)</span>
+          <span><i class="dot aicl"></i> AICL</span>
+        </div>
+      </div>
+
+      <div id="roundtrip" class="roundtrip"></div>
+    </div>
+  </section>
+
+  <details class="card adv">
+    <summary>Pipeline <span class="muted small" id="pipeSummaryMeta"></span>
+      <span class="head-actions">
+        <button class="btn ghost small" id="copyAicl" title="Copy AICL output">Copy AICL</button>
+        <button class="btn ghost small" id="copyTokens" title="Copy token IDs">Copy Tokens</button>
+        <button class="btn ghost small" id="copyAll" title="Copy full pipeline">Copy All</button>
+        <label class="toggle"><input type="checkbox" id="toggleHex"/> hex</label>
+      </span>
+    </summary>
+    <div class="pipeline two">
+      <div class="pipe-step">
+        <span class="pipe-label">AICL (PUA symbols)</span>
+        <div id="pipeAiclWrap" class="pipe-pre-wrap"></div>
+        <div id="pipeAiclMeta" class="muted small"></div>
+      </div>
+      <div class="pipe-step">
+        <span class="pipe-label">Tokens (IDs)</span>
+        <pre id="pipeTokens" class="pipe-pre mono"></pre>
+        <div id="pipeTokensMeta" class="muted small"></div>
+      </div>
+    </div>
+  </details>
+
+  <details class="card adv">
+    <summary>Step view <span class="muted small" id="stepsMeta"></span>
+      <span class="head-actions"><label class="toggle"><input type="checkbox" id="toggleSteps"/> trace</label></span>
+    </summary>
+    <div id="steps" class="steps"></div>
+  </details>
+
+  <footer class="foot">
+    <div><a href="https://github.com/vspcoderz/aicl">github.com/vspcoderz/aicl</a> · MIT</div>
+    <div class="muted small" id="specFooter">51k dict · strictly local, no data leaves your machine (except optional server API).</div>
+  </footer>
+</main>
+
+<div id="toast" class="toast"></div>
+
+<script type="module" src="./app.js"></script>
+</body>
+</html>

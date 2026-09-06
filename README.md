@@ -1,21 +1,15 @@
 <div align="center">
 
-# AICL — AI Compression Language
+# ◈ AICL — AI Compression Language
 
-**2–14 PUA → 1 token · 51k dictionary · Beats GPT-4o on unseen text — 1.26× on raw English, 1.22× on code, all lossless**
+**A lossless text tokenizer that beats GPT-4o on every domain — English, code, SQL, markdown, ALL-CAPS, even text it has never seen.**
 
-*Compress English, code and structured text for cheaper, faster LLM inference.*
-
-[![Tests](https://img.shields.io/badge/tests-131%2F131_passing-brightgreen)](#test-suite)
+[![Tests](https://img.shields.io/badge/tests-131%2F131_passing-brightgreen)](#-test-suite)
 [![License](https://img.shields.io/badge/license-MIT-black)](#license)
-[![Tokenizer](https://img.shields.io/badge/tokenizer-BPE_2--14_PUA-blue)](#aicltokenizer)
-[![Merges](https://img.shields.io/badge/merges-68,568-informational)](#aicltokenizer)
-[![Stage1](https://img.shields.io/badge/Stage1-2.87x-black)](#benchmarks)
+[![Vocab](https://img.shields.io/badge/vocab-117,298_rules-blue)](#-how-it-works)
+[![Pages](https://img.shields.io/badge/playground-live_on_GitHub_Pages-8A2BE2)](https://vspcoderz.github.io/aicl/)
 
-```
-Raw English → [AICL Encoder: PUA] → AICL Text → [AICLTokenizer: BPE] → Tokens → LLM
-              2.87× Stage 1 · 1.57× Stage 2 · wins vs GPT-4o on unseen text
-```
+**[▶ Open the live playground](https://vspcoderz.github.io/aicl/)** — runs 100% in your browser, nothing leaves your machine.
 
 </div>
 
@@ -23,198 +17,156 @@ Raw English → [AICL Encoder: PUA] → AICL Text → [AICLTokenizer: BPE] → T
 
 <div align="center">
   <img src="assets/benchmark.png" width="820" alt="AICL vs GPT-4o — tokens lower is better, 8 tests"/>
-  <br/>
-  <sub>GPT-4o vs AICL · 8/8 wins · AICLTokenizer</sub>
 </div>
 
 <div align="center">
   <img src="assets/benchmark-all.png" width="820" alt="AICL vs GPT-3/4/4o/5 + LLaMA 2 + AICL"/>
-  <br/>
-  <sub>6 tokenizers · GPT-3 · GPT-4 · GPT-4o · GPT-5 · LLaMA 2 · <b>AICL</b></sub>
 </div>
 
 ---
 
-## Benchmarks
+## 📊 Benchmarks
 
 ### vs GPT-4o (`o200k_base`) — tokens, lower is better · `npm run benchmark`
 
 | Test | Raw | GPT-4o | AICL | Win |
 |---|---:|---:|---:|---:|
-| **API response** | 193 | 73 | **46** | **1.59×** |
-| **Code const/let** | 140 | 36 | **23** | **1.57×** |
-| **SQL** | 272 | 73 | **55** | **1.33×** |
-| **Markdown** | 168 | 43 | **34** | **1.26×** |
-| **Shell** | 258 | 83 | **69** | **1.20×** |
+| **API response** | 193 | 73 | **37** | **1.97×** |
+| **Code const/let** | 140 | 36 | **20** | **1.80×** |
+| **SQL** | 272 | 73 | **48** | **1.52×** |
+| **Paths/URLs** | 235 | 72 | **51** | **1.41×** |
+| **Markdown** | 168 | 43 | **32** | **1.34×** |
+| **Shell** | 258 | 83 | **66** | **1.26×** |
 | **Common English** | 154 | 32 | **27** | **1.19×** |
-| **Paths/URLs** | 235 | 72 | **61** | **1.18×** |
 | **Prompt** | 61 | 15 | **13** | **1.15×** |
-| **Total** | 1481 | 427 | **328** | **1.30×** |
+| **Total** | 1481 | 427 | **294** | **1.45×** |
 
-> AICL wins **8/8** vs GPT-4o — and the same holds on text the tokenizer has **never seen**: 68,568 rules (39,896 alias + 28,672 learned BPE merges), `maxTokenLength: 14`, trained on a 109M-char PUA corpus (FineWeb English + CodeSearchNet + SQL + markdown). Total pipeline: 4.52× (Stage 1: 2.87×, Stage 2: 1.57×).
+> Total pipeline: **5.04×** (Stage 1 dictionary: 2.91×, Stage 2 BPE: 1.73×). Every result is lossless — `decode(encode(x)) === x`.
 
-### Generalization — held-out & unseen corpora
+### 🎯 The number that matters: *unseen* text
+
+Benchmarks mean nothing if the tokenizer memorized them. Below, **none** of the text was in training — 600 lines pulled from a 12.6M-line corpus the tokenizer never saw, plus 50 handcrafted probes:
 
 | Eval set | vs GPT-4o | Lossless |
 |---|---:|:---:|
-| Bench-8 (in-corpus) | **1.30×** | ✅ |
-| Held-out 50 probes (8 domains) | **1.14×** | ✅ |
-| **Unseen English prose** (150 lines, real corpus) | **1.26×** | ✅ |
-| **Unseen code** (150 lines, CodeSearchNet-style) | **1.22×** | ✅ |
-| **Unseen markdown** (150 lines) | **1.22×** | ✅ |
-| Unseen SQL (150 lines) | 0.95× | ✅ |
+| **Unseen English prose** (150 real corpus lines) | **1.34×** | ✅ |
+| **Unseen markdown** (150 lines) | **1.29×** | ✅ |
+| **Unseen code** (150 lines) | **1.29×** | ✅ |
+| **Unseen SQL** (150 lines) | **1.27×** | ✅ |
+| Held-out 50 probes (8 domains) | **1.20×** | ✅ |
+| ALL-CAPS rant (playground stress test) | **1.24×** | ✅ |
 
-> The key mechanism: an **alias pre-pass** deterministically fuses every (word, trailing-space) pair into one token *before* BPE learning — so any unseen English word compresses as word+space in a single token, and the 28k learned merges spend their budget on frequent collocations on top. Evaluate anytime: `node scripts/eval_all.mjs`.
-
-### Stage 1 — Dictionary Encoder (PUA, `node test_corpus.mjs`)
-
-| Text Type | Ratio | Example |
-|---|---:|---|
-| Code const/let | **4.24×** | `const app = express(); app.get(...)` |
-| Git/CLI | **3.81×** | `git diff --stat && npm test` |
-| Common English | **3.08×** | Natural language |
-| Markdown | **3.07×** | Headers, lists |
-| Markdown full | **2.90×** | Docs + code blocks |
-| Shell | **2.74×** | Terminal cmds |
-| SQL | **2.75×** | `SELECT * FROM users…` |
-| Paths/URLs | **2.73×** | `https://…`, `~/.config/…` |
-| API response | **2.47×** | JSON |
-| **Overall (19 tests)** | **2.14×** | 3577 → 1673 chars, all lossless |
-
-> `>1× = win`. Random alphanumeric: ~1.33× (entropy limit). Every result is `decode(encode(x)) === x`.
+> Evaluate it yourself: `node scripts/eval_all.mjs` — 658 texts, structural sanity check, per-domain breakdown.
 
 ---
 
-## Quick Start
+## 🚀 Quick Start
 
 ```bash
 git clone https://github.com/vspcoderz/aicl && cd aicl
 npm install
 
-# Generate dictionaries (48k English + 2k code + 1k symbols)
-npm run generate
-
-# Encode / Decode
+# Encode / decode from the CLI
 node src/cli.js encode "the quick brown fox jumps over the lazy dog"
 node src/cli.js decode "<AICL output>"
+node src/cli.js stats "SELECT * FROM users WHERE id = 42"
 
-# Playground (browser)
-npm run playground        # → http://localhost:8787 — live encode, tokenize, compare vs GPT-4o/LLaMA
+# Local playground (server-backed, with GPT/LLaMA comparison)
+npm run playground        # → http://localhost:8787
 
 # Tests & benchmarks
 npm test                  # 131/131 passing
-npm run test:corpus       # 19 tests · 2.14× Stage 1, all lossless
-npm run benchmark         # 8 tests vs GPT-3/4/4o/5 + LLaMA + AICL → assets/*.svg → *.png
-npm run corpus            # rebuild 818k training corpus
+npm run test:corpus       # 19 tests · 2.91× Stage 1, all lossless
+npm run benchmark         # regenerate assets/*.svg → *.png
+node scripts/eval_all.mjs # full acceptance eval (bench + held-out + unseen)
 ```
 
-## How It Works
-
-### Stage 1 — Dictionary Encoder (PUA)
-
-Maps patterns → single Unicode PUA symbols. Trie-accelerated, 3-tier greedy:
-
-1. **Longest match** via trie `O(maxLen)` per position
-2. **Word fallback** when `bestLen === 1` → whole-word lookup (`test.` → `base("test")` + `MOD_CAPS` + `MOD_TRAIL_PERIOD`) → fragments (`th`, `ing`, `tion`, `a0–z9`)
-3. **Literal** (prefix with `U+E000` if input already contains PUA)
-
-Dictionary:
-
-- **48,723 English** — frequency-sorted + single letters + fragments
-- **2,048 Code** — `console.log(`, `SELECT *`, `async`, `=>`, …
-- **1,081 Phrases/Markdown/Symbols** — `# `, `**`, `"name"`, common phrases
-- **17 Modifiers** — `MOD_CAPS`, `MOD_TRAIL_SPACE`, etc.
-- **530+ Fragments** — `th`, `ing`, `tion`, `src`, `a0–z9`
-
-### Stage 2 — AICLTokenizer (BPE on PUA)
-
-Custom BPE **on PUA, not English** — 1 PUA ≈ 4.5 English chars, 1 token = 2–14 PUA = **up to 60+ chars/token**.
-
-- `maxTokenLength: 14`, 68,568 rules = 39,896 deterministic alias rules + 28,672 BPE merges learned on a 109M-char PUA corpus (FineWeb + CodeSearchNet + SQL + markdown, 2.1M lines)
-- Alias pre-pass fuses every (symbol, trailing-space) adjacency — both space encodings — before learning, so unseen words still get word+space coverage
-- Trained with the incremental trainer (`scripts/train_fast.mjs`) on the full corpus; checkpoint/resume supported (`scripts/train_resilient.mjs`)
-- Pair keys `"a:b"` (no int overflow on supplementary PUA)
-- Evaluate: `node scripts/eval_all.mjs` (sanity + bench + 50 held-out probes + 600-line unseen corpus)
-
----
-
-## API
+### As a library
 
 ```javascript
 import { encode, decode } from './src/index.js';
 import { tokenize, detokenize, loadTokenizer } from './src/tokenizer/index.js';
 
-// Stage 1: Dictionary
-const aicl = encode("the quick brown fox"); // 19 → 2 PUA, 9.5×
-decode(aicl.output).output === "the quick brown fox" // true
+const aicl = encode("SELECT * FROM users WHERE id = 42");   // 36 → 13 PUA symbols
+const vocab = loadTokenizer();                               // 117,298 rules
+const tokens = tokenize(aicl.output, vocab);                 // → 7 tokens
 
-// Stage 2: Tokenizer
-const vocab = loadTokenizer(); // 68,568 rules (39,896 alias + 28,672 merges)
-const toks = tokenize(aicl.output, vocab);
-detokenize(toks, vocab) === aicl.output // true
-
-// Full pipeline
-const raw = "aicl is Goated BTW, and this can reduce tokens very vary fast";
-const tokens = tokenize(encode(raw).output, vocab); // 15 gpt-4o tokens → 13, lossless
+decode(aicl.output).output === "SELECT * FROM users WHERE id = 42"; // true
+detokenize(tokens, vocab) === aicl.output;                          // true
 ```
 
-## CLI
+---
+
+## 🧠 How It Works
+
+Two stages, both lossless:
+
+### Stage 1 — Dictionary Encoder (Unicode PUA)
+
+Maps patterns → single Private Use Area symbols via a trie with greedy longest-match:
+
+- **96k word symbols** — 48.7k English words **+ 47.3k uppercase variants** (`hello` → `hello`-symbol, `HELLO` → `HELLO`-symbol), so capitalized and ALL-CAPS text costs the same as lowercase
+- **2k code patterns** — `console.log(`, `SELECT *`, `=>`, …
+- **1.1k symbols & runs** — markdown (`##`, `**`), whitespace runs (2–16 spaces), box-drawing (`─`, `│`, `┌`)
+- **18 modifiers** — `MOD_CAPS`, `MOD_ALLCAPS`, trailing punctuation, leading brackets
+
+Unseen words fall back to sub-word fragments (`tion`, `ing`, `th`, …) — never bigger than the raw text.
+
+### Stage 2 — BPE over PUA symbols
+
+Custom byte-pair-encoding **on PUA ids, not English characters**, trained on a 2.1M-line / 87M-symbol corpus (FineWeb English + CodeSearchNet + SQL + markdown):
+
+- **54k alias rules** — every (word, space-form) pair is deterministically fused, so *any* word — seen or unseen — compresses `word␣` into one token
+- **30k caps aliases** — `(word, MOD_CAPS/ALLCAPS, space)` triples fuse the same way: capitalized text costs what lowercase costs
+- **33k learned merges** — frequent collocations chain on top of the alias tokens
+- `maxTokenLength: 14` → one token can carry 60+ raw characters
+
+The alias mechanism is the key to generalization: pair-keyed BPE can only ever cover `#merges` word+space combos; the alias table covers **all of them**, and the learned merges spend their budget on collocations instead of re-learning word boundaries.
+
+---
+
+## 🎮 Playground
+
+| | |
+|---|---|
+| **[Live on GitHub Pages](https://vspcoderz.github.io/aicl/)** | 100% client-side — the encoder, dictionary and vocab load in your browser; no server, no telemetry |
+| **Local (`npm run playground`)** | Full version: token heatmap, pipeline views, live bars vs GPT-3/4/4o/5 + LLaMA 2, step-by-step encoder trace |
+
+Both versions show per-token colors inside the input box as you type.
+
+<details>
+<summary><b>Run the Pages demo from this repo</b></summary>
+
+GitHub Pages serves this repo's `/docs` folder, which imports `../src/encoder.js` and fetches `../dict/*.json` + `../tokenizer/vocab.json` directly from the repo — no build step.
+
+To enable it: **Settings → Pages → Deploy from a branch → `main` → `/docs`**. Done.
+</details>
+
+---
+
+## 📁 Layout
+
+```
+src/               encoder, decoder, tokenizer, unicode sanitizing, CLI
+dict/              english + code + symbols + modifiers (pattern → PUA symbol)
+tokenizer/         vocab.json — 117,298 rules (alias + learned BPE merges)
+corpus/            small local training corpus
+scripts/           trainer (train_fast.mjs), evals, benchmark, corpus tools
+playground/        server-backed playground (npm run playground)
+docs/              static client-side playground for GitHub Pages
+assets/            benchmark charts (SVG/PNG)
+```
+
+## 🔧 Retraining
 
 ```bash
-node src/cli.js encode "text"     # Text → AICL (sanitized: strips C0 controls except \t\n\r)
-node src/cli.js decode "<AICL>"   # AICL → Text (sanitized)
-node src/cli.js stats "text"      # Raw → AICL → Tokens stats
-node src/cli.js tok "<AICL>"      # AICL → Tokens
-node src/cli.js visual "text"     # Step-by-step
+node scripts/train_fast.mjs            # incremental trainer (aliases + BPE)
+scripts/train_resilient.mjs            # checkpoint/resume wrapper for big runs
+node scripts/eval_all.mjs              # acceptance eval after any change
 ```
 
-## Playground
+The trainer fuses alias pairs/triples before learning, translates synthetic ids to runtime ids, and supports `initMerges` resume — verified byte-identical to a fresh run.
 
-Live browser playground — type anything and see the full pipeline instantly:
+## 📜 License
 
-```bash
-npm run playground        # http://localhost:8787  (PORT=8787)
-# or
-PORT=3000 npm run playground
-```
-
-- Input → Stage 1 (PUA) → Stage 2 (tokens) with win vs GPT-4o + bar chart vs GPT-3/4/4o/5 + LLaMA 2
-- **Sanitized everywhere:** `encode`/`decode`/`tokenize` validate type + 1M char cap and strip unsafe controls (NUL, lone surrogates); `decode` round-trips losslessly for valid text. Playground `POST /api/tokenize` caps at 2 MB + 1M chars and sanitizes before encoding. Pass `allowUnsafe: true` to bypass (advanced).
-- Static files served safely (no `..` traversal).
-
-## Unicode Ranges
-
-| Dictionary | Range | Count |
-|---|---|---:|
-| English | `U+E001–U+F8FF` + `U+100900–U+10FFFF` | 48,723 |
-| Code | `U+F0000–U+F07FF` | 2,048 |
-| Phrases/Symbols | `U+F0800–U+F0FFF` + `U+100000–U+1007FF` | 1,081 |
-| Modifiers | `U+100800–U+1008FF` | 17 |
-| Escape | `U+E000` | Reserved |
-
-## Test Suite
-
-```bash
-npm test              # 131/131 passing
-npm run test:corpus   # 19 tests · 2.14× Stage 1, all lossless
-npm run benchmark     # regenerate assets/benchmark.svg + benchmark-all.svg → .png
-```
-
-## Assets
-
-```
-assets/
-  benchmark.png      # GPT-4o vs AICL — 8 tests, minimal dark
-  benchmark.svg
-  benchmark-all.png  # GPT-3/4/4o/5 + LLaMA 2 + AICL
-  benchmark-all.svg
-playground/
-  index.html         # UI
-  style.css          # minimal dark theme
-  app.js             # client (talks to /api/tokenize)
-  server.mjs         # Node http server + sanitized API
-```
-
-## License
-
-MIT — github.com/vspcoderz/aicl
+MIT · [github.com/vspcoderz/aicl](https://github.com/vspcoderz/aicl)
