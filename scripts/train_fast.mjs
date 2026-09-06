@@ -52,7 +52,11 @@ export function trainTokenizerFast(aiclCorpus, opts = {}) {
   const isWsId = (id) =>
     id === CP_BASE + 0x20 || id === CP_BASE + 0x09 || id === CP_BASE + 0x0a ||
     id === CP_BASE + 0x100406 /* space symbol */ ||
-    id === CP_BASE + 0x100801 /* MOD_TRAIL_SPACE */;
+    id === CP_BASE + 0x100801 /* MOD_TRAIL_SPACE */ ||
+    // space-run dict symbols (2/4/8/12/16 spaces, dict/symbols.json) — their
+    // runs are already covered by the symbols themselves; (run,run) learned
+    // merges would just burn budget the same way raw ws self-merges did
+    (id >= CP_BASE + 0x10ae54 && id <= CP_BASE + 0x10ae58);
 
   const resume = Array.isArray(opts.initMerges) && opts.initMerges.length > 0;
 
