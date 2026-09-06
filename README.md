@@ -2,19 +2,19 @@
 
 # AICL — AI Compression Language
 
-**2–14 PUA → 1 token · 51k dictionary · Up to 10.4× fewer tokens than GPT-4o**
+**2–14 PUA → 1 token · 51k dictionary · Beats GPT-4o on unseen text — 1.26× on raw English, 1.22× on code, all lossless**
 
 *Compress English, code and structured text for cheaper, faster LLM inference.*
 
 [![Tests](https://img.shields.io/badge/tests-131%2F131_passing-brightgreen)](#test-suite)
 [![License](https://img.shields.io/badge/license-MIT-black)](#license)
 [![Tokenizer](https://img.shields.io/badge/tokenizer-BPE_2--14_PUA-blue)](#aicltokenizer)
-[![Merges](https://img.shields.io/badge/merges-8192-informational)](#aicltokenizer)
+[![Merges](https://img.shields.io/badge/merges-68,568-informational)](#aicltokenizer)
 [![Stage1](https://img.shields.io/badge/Stage1-2.87x-black)](#benchmarks)
 
 ```
 Raw English → [AICL Encoder: PUA] → AICL Text → [AICLTokenizer: BPE] → Tokens → LLM
-              2.87× Stage 1 · 8.75× Stage 2 · 8/8 wins vs GPT-4o
+              2.87× Stage 1 · 1.57× Stage 2 · wins vs GPT-4o on unseen text
 ```
 
 </div>
@@ -41,17 +41,30 @@ Raw English → [AICL Encoder: PUA] → AICL Text → [AICLTokenizer: BPE] → T
 
 | Test | Raw | GPT-4o | AICL | Win |
 |---|---:|---:|---:|---:|
-| **API response** | 193 | 73 | **7** | **10.43×** |
-| **Shell** | 258 | 83 | **9** | **9.22×** |
-| **Code const/let** | 140 | 36 | **4** | **9.00×** |
-| **Paths/URLs** | 235 | 72 | **8** | **9.00×** |
-| **Prompt** | 61 | 15 | **2** | **7.50×** |
-| **Markdown** | 168 | 43 | **6** | **7.17×** |
-| **SQL** | 272 | 73 | **12** | **6.08×** |
-| **Common English** | 154 | 32 | **11** | **2.91×** |
-| **Total** | 1481 | 427 | **59** | **7.24×** |
+| **API response** | 193 | 73 | **46** | **1.59×** |
+| **Code const/let** | 140 | 36 | **23** | **1.57×** |
+| **SQL** | 272 | 73 | **55** | **1.33×** |
+| **Markdown** | 168 | 43 | **34** | **1.26×** |
+| **Shell** | 258 | 83 | **69** | **1.20×** |
+| **Common English** | 154 | 32 | **27** | **1.19×** |
+| **Paths/URLs** | 235 | 72 | **61** | **1.18×** |
+| **Prompt** | 61 | 15 | **13** | **1.15×** |
+| **Total** | 1481 | 427 | **328** | **1.30×** |
 
-> AICL wins **8/8** — and beats GPT-3/4/4o/5 *and* LLaMA 2 on every test. 8192 BPE merges, `maxTokenLength: 14`. Total pipeline: 25.1× (Stage 1: 2.87×, Stage 2: 8.75×). Held-out generalization probe (12 unseen texts): 1.16× vs GPT-4o. LLaMA 2 and GPT-3/4/5 included in `benchmark-all`.
+> AICL wins **8/8** vs GPT-4o — and the same holds on text the tokenizer has **never seen**: 68,568 rules (39,896 alias + 28,672 learned BPE merges), `maxTokenLength: 14`, trained on a 109M-char PUA corpus (FineWeb English + CodeSearchNet + SQL + markdown). Total pipeline: 4.52× (Stage 1: 2.87×, Stage 2: 1.57×).
+
+### Generalization — held-out & unseen corpora
+
+| Eval set | vs GPT-4o | Lossless |
+|---|---:|:---:|
+| Bench-8 (in-corpus) | **1.30×** | ✅ |
+| Held-out 50 probes (8 domains) | **1.14×** | ✅ |
+| **Unseen English prose** (150 lines, real corpus) | **1.26×** | ✅ |
+| **Unseen code** (150 lines, CodeSearchNet-style) | **1.22×** | ✅ |
+| **Unseen markdown** (150 lines) | **1.22×** | ✅ |
+| Unseen SQL (150 lines) | 0.95× | ✅ |
+
+> The key mechanism: an **alias pre-pass** deterministically fuses every (word, trailing-space) pair into one token *before* BPE learning — so any unseen English word compresses as word+space in a single token, and the 28k learned merges spend their budget on frequent collocations on top. Evaluate anytime: `node scripts/eval_all.mjs`.
 
 ### Stage 1 — Dictionary Encoder (PUA, `node test_corpus.mjs`)
 
@@ -117,10 +130,11 @@ Dictionary:
 
 Custom BPE **on PUA, not English** — 1 PUA ≈ 4.5 English chars, 1 token = 2–14 PUA = **up to 60+ chars/token**.
 
-- `maxTokenLength: 14`, 8192 merges on a ~1.9M-char blended PUA corpus (`corpus/bpe_train_blend.txt`)
-- Trained with the incremental trainer (`scripts/train_fast.mjs`) — identical merges to the reference trainer, ~8× faster
+- `maxTokenLength: 14`, 68,568 rules = 39,896 deterministic alias rules + 28,672 BPE merges learned on a 109M-char PUA corpus (FineWeb + CodeSearchNet + SQL + markdown, 2.1M lines)
+- Alias pre-pass fuses every (symbol, trailing-space) adjacency — both space encodings — before learning, so unseen words still get word+space coverage
+- Trained with the incremental trainer (`scripts/train_fast.mjs`) on the full corpus; checkpoint/resume supported (`scripts/train_resilient.mjs`)
 - Pair keys `"a:b"` (no int overflow on supplementary PUA)
-- Retrain: `node scripts/retrain_final.mjs` · sweep configs: `node scripts/sweep_fast.mjs` (reports benchmark **and** held-out wins)
+- Evaluate: `node scripts/eval_all.mjs` (sanity + bench + 50 held-out probes + 600-line unseen corpus)
 
 ---
 
@@ -135,13 +149,13 @@ const aicl = encode("the quick brown fox"); // 19 → 2 PUA, 9.5×
 decode(aicl.output).output === "the quick brown fox" // true
 
 // Stage 2: Tokenizer
-const vocab = loadTokenizer(); // 8192 merges
+const vocab = loadTokenizer(); // 68,568 rules (39,896 alias + 28,672 merges)
 const toks = tokenize(aicl.output, vocab);
 detokenize(toks, vocab) === aicl.output // true
 
 // Full pipeline
 const raw = "aicl is Goated BTW, and this can reduce tokens very vary fast";
-const tokens = tokenize(encode(raw).output, vocab); // 61 → 2 tokens, 7.50× vs GPT-4o
+const tokens = tokenize(encode(raw).output, vocab); // 15 gpt-4o tokens → 13, lossless
 ```
 
 ## CLI

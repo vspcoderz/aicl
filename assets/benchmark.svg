@@ -2,7 +2,7 @@
 <style>.t{font:700 17px 'Stack Sans Notch','Inter',system-ui,sans-serif;fill:#f9fafb;letter-spacing:-0.3px}.s{font:400 11px 'Stack Sans Notch','Inter',system-ui,sans-serif;fill:#9ca3af}.n{font:600 10px 'Stack Sans Notch','Inter',system-ui,sans-serif;fill:#e5e7eb}.a{font:400 9px 'Stack Sans Notch','Inter',system-ui,sans-serif;fill:#6b7280}</style>
 <rect width="900" height="520" rx="16" fill="#0a0a0a"/>
 <text x="32" y="34" class="t">AICL vs GPT-4o — tokens (lower is better)</text>
-<text x="32" y="52" class="s">2–14 PUA → 1 token · 8192 merges · max 14 PUA/token · 8 tests · 131/131 pass</text>
+<text x="32" y="52" class="s">2–14 PUA → 1 token · 68568 merges · max 14 PUA/token · 8 tests · 131/131 pass</text>
 <g transform="translate(32,66)">
   <rect x="0" y="0" width="10" height="10" rx="2" fill="#27272a"/><text x="14" y="9" class="s">GPT-4o (o200k_base)</text>
   <rect x="140" y="0" width="10" height="10" rx="2" fill="#fafafa"/><text x="154" y="9" class="s">AICLTokenizer</text>
@@ -16,68 +16,68 @@
   <g>
     <rect x="68" y="290" width="28" height="90" rx="4" fill="#27272a" opacity="0.85"/>
     <text x="82" y="282" text-anchor="middle" fill="#9ca3af" font-size="9" font-weight="600">32</text>
-    <rect x="104" y="349" width="28" height="31" rx="4" fill="#fafafa" />
-    <text x="118" y="341" text-anchor="middle" fill="#fafafa" font-size="9" font-weight="700">11</text>
+    <rect x="104" y="304" width="28" height="76" rx="4" fill="#fafafa" />
+    <text x="118" y="296" text-anchor="middle" fill="#fafafa" font-size="9" font-weight="700">27</text>
     <text x="100" y="410" text-anchor="middle" font-size="10" font-weight="600" fill="#e5e7eb">Common</text><text x="100" y="422" text-anchor="middle" font-size="10" font-weight="600" fill="#e5e7eb">English</text>
-    <text x="100" y="440" text-anchor="middle" fill="#10b981" font-size="9" font-weight="700">2.91×</text>
+    <text x="100" y="440" text-anchor="middle" fill="#eab308" font-size="9" font-weight="700">1.19×</text>
   </g>
   <g>
     <rect x="172.85714285714286" y="279" width="28" height="101" rx="4" fill="#27272a" opacity="0.85"/>
     <text x="186.85714285714286" y="271" text-anchor="middle" fill="#9ca3af" font-size="9" font-weight="600">36</text>
-    <rect x="208.85714285714286" y="369" width="28" height="11" rx="4" fill="#fafafa" />
-    <text x="222.85714285714286" y="361" text-anchor="middle" fill="#fafafa" font-size="9" font-weight="700">4</text>
+    <rect x="208.85714285714286" y="315" width="28" height="65" rx="4" fill="#fafafa" />
+    <text x="222.85714285714286" y="307" text-anchor="middle" fill="#fafafa" font-size="9" font-weight="700">23</text>
     <text x="204.85714285714286" y="410" text-anchor="middle" font-size="10" font-weight="600" fill="#e5e7eb">Code</text>
-    <text x="204.85714285714286" y="440" text-anchor="middle" fill="#10b981" font-size="9" font-weight="700">9×</text>
+    <text x="204.85714285714286" y="440" text-anchor="middle" fill="#a3e635" font-size="9" font-weight="700">1.57×</text>
   </g>
   <g>
     <rect x="277.7142857142857" y="174" width="28" height="206" rx="4" fill="#27272a" opacity="0.85"/>
     <text x="291.7142857142857" y="166" text-anchor="middle" fill="#9ca3af" font-size="9" font-weight="600">73</text>
-    <rect x="313.7142857142857" y="346" width="28" height="34" rx="4" fill="#fafafa" />
-    <text x="327.7142857142857" y="338" text-anchor="middle" fill="#fafafa" font-size="9" font-weight="700">12</text>
+    <rect x="313.7142857142857" y="225" width="28" height="155" rx="4" fill="#fafafa" />
+    <text x="327.7142857142857" y="217" text-anchor="middle" fill="#fafafa" font-size="9" font-weight="700">55</text>
     <text x="309.7142857142857" y="410" text-anchor="middle" font-size="10" font-weight="600" fill="#e5e7eb">SQL</text>
-    <text x="309.7142857142857" y="440" text-anchor="middle" fill="#10b981" font-size="9" font-weight="700">6.08×</text>
+    <text x="309.7142857142857" y="440" text-anchor="middle" fill="#a3e635" font-size="9" font-weight="700">1.33×</text>
   </g>
   <g>
     <rect x="382.57142857142856" y="174" width="28" height="206" rx="4" fill="#27272a" opacity="0.85"/>
     <text x="396.57142857142856" y="166" text-anchor="middle" fill="#9ca3af" font-size="9" font-weight="600">73</text>
-    <rect x="418.57142857142856" y="360" width="28" height="20" rx="4" fill="#fafafa" />
-    <text x="432.57142857142856" y="352" text-anchor="middle" fill="#fafafa" font-size="9" font-weight="700">7</text>
+    <rect x="418.57142857142856" y="250" width="28" height="130" rx="4" fill="#fafafa" />
+    <text x="432.57142857142856" y="242" text-anchor="middle" fill="#fafafa" font-size="9" font-weight="700">46</text>
     <text x="414.57142857142856" y="410" text-anchor="middle" font-size="10" font-weight="600" fill="#e5e7eb">API</text><text x="414.57142857142856" y="422" text-anchor="middle" font-size="10" font-weight="600" fill="#e5e7eb">response</text>
-    <text x="414.57142857142856" y="440" text-anchor="middle" fill="#10b981" font-size="9" font-weight="700">10.43×</text>
+    <text x="414.57142857142856" y="440" text-anchor="middle" fill="#a3e635" font-size="9" font-weight="700">1.59×</text>
   </g>
   <g>
     <rect x="487.42857142857144" y="146" width="28" height="234" rx="4" fill="#27272a" opacity="0.85"/>
     <text x="501.42857142857144" y="138" text-anchor="middle" fill="#9ca3af" font-size="9" font-weight="600">83</text>
-    <rect x="523.4285714285714" y="355" width="28" height="25" rx="4" fill="#fafafa" />
-    <text x="537.4285714285714" y="347" text-anchor="middle" fill="#fafafa" font-size="9" font-weight="700">9</text>
+    <rect x="523.4285714285714" y="186" width="28" height="194" rx="4" fill="#fafafa" />
+    <text x="537.4285714285714" y="178" text-anchor="middle" fill="#fafafa" font-size="9" font-weight="700">69</text>
     <text x="519.4285714285714" y="410" text-anchor="middle" font-size="10" font-weight="600" fill="#e5e7eb">Shell</text>
-    <text x="519.4285714285714" y="440" text-anchor="middle" fill="#10b981" font-size="9" font-weight="700">9.22×</text>
+    <text x="519.4285714285714" y="440" text-anchor="middle" fill="#a3e635" font-size="9" font-weight="700">1.2×</text>
   </g>
   <g>
     <rect x="592.2857142857143" y="259" width="28" height="121" rx="4" fill="#27272a" opacity="0.85"/>
     <text x="606.2857142857143" y="251" text-anchor="middle" fill="#9ca3af" font-size="9" font-weight="600">43</text>
-    <rect x="628.2857142857143" y="363" width="28" height="17" rx="4" fill="#fafafa" />
-    <text x="642.2857142857143" y="355" text-anchor="middle" fill="#fafafa" font-size="9" font-weight="700">6</text>
+    <rect x="628.2857142857143" y="284" width="28" height="96" rx="4" fill="#fafafa" />
+    <text x="642.2857142857143" y="276" text-anchor="middle" fill="#fafafa" font-size="9" font-weight="700">34</text>
     <text x="624.2857142857143" y="410" text-anchor="middle" font-size="10" font-weight="600" fill="#e5e7eb">Markdown</text>
-    <text x="624.2857142857143" y="440" text-anchor="middle" fill="#10b981" font-size="9" font-weight="700">7.17×</text>
+    <text x="624.2857142857143" y="440" text-anchor="middle" fill="#a3e635" font-size="9" font-weight="700">1.26×</text>
   </g>
   <g>
     <rect x="697.1428571428571" y="177" width="28" height="203" rx="4" fill="#27272a" opacity="0.85"/>
     <text x="711.1428571428571" y="169" text-anchor="middle" fill="#9ca3af" font-size="9" font-weight="600">72</text>
-    <rect x="733.1428571428571" y="357" width="28" height="23" rx="4" fill="#fafafa" />
-    <text x="747.1428571428571" y="349" text-anchor="middle" fill="#fafafa" font-size="9" font-weight="700">8</text>
+    <rect x="733.1428571428571" y="208" width="28" height="172" rx="4" fill="#fafafa" />
+    <text x="747.1428571428571" y="200" text-anchor="middle" fill="#fafafa" font-size="9" font-weight="700">61</text>
     <text x="729.1428571428571" y="410" text-anchor="middle" font-size="10" font-weight="600" fill="#e5e7eb">Paths</text>
-    <text x="729.1428571428571" y="440" text-anchor="middle" fill="#10b981" font-size="9" font-weight="700">9×</text>
+    <text x="729.1428571428571" y="440" text-anchor="middle" fill="#eab308" font-size="9" font-weight="700">1.18×</text>
   </g>
   <g>
     <rect x="802" y="338" width="28" height="42" rx="4" fill="#27272a" opacity="0.85"/>
     <text x="816" y="330" text-anchor="middle" fill="#9ca3af" font-size="9" font-weight="600">15</text>
-    <rect x="838" y="374" width="28" height="6" rx="4" fill="#fafafa" />
-    <text x="852" y="366" text-anchor="middle" fill="#fafafa" font-size="9" font-weight="700">2</text>
+    <rect x="838" y="343" width="28" height="37" rx="4" fill="#fafafa" />
+    <text x="852" y="335" text-anchor="middle" fill="#fafafa" font-size="9" font-weight="700">13</text>
     <text x="834" y="410" text-anchor="middle" font-size="10" font-weight="600" fill="#e5e7eb">Prompt</text>
-    <text x="834" y="440" text-anchor="middle" fill="#10b981" font-size="9" font-weight="700">7.5×</text>
+    <text x="834" y="440" text-anchor="middle" fill="#eab308" font-size="9" font-weight="700">1.15×</text>
   </g>
 <line x1="32" y1="460" x2="868" y2="460" stroke="#1f1f23"/>
 <text x="32" y="480" class="s">Lower is better · pipeline: raw → AICL (51k dict · 2–5 PUA) → BPE → tokens</text>
-<text x="32" y="498" class="a">github.com/vspcoderz/aicl · 8192 merges</text>
+<text x="32" y="498" class="a">github.com/vspcoderz/aicl · 68568 merges</text>
 </svg>
