@@ -95,6 +95,16 @@ export function encode(text, opts={}){
           }
         } else {
           const lower=word.toLowerCase();
+          // Only compress case patterns the decoder can restore exactly:
+          //   - all-lowercase (word or fragment path)
+          //   - Title case (lowercase symbol + MOD_CAPS restores the first char)
+          // Any other casing (camelCase like "sV"/"iPhone", internal caps) must
+          // fall through to literal emission, otherwise case is corrupted on
+          // decode (e.g. "Parser" -> "parSer") because MOD_CAPS only transforms
+          // the last buffered symbol.
+          const isAllLower = word === lower;
+          const isTitleCase = !isAllLower && word[0] !== lower[0] && word.slice(1) === lower.slice(1);
+          if (isAllLower || isTitleCase) {
           const baseSym=patternToSymbol.get(lower);
           if(baseSym){
             if(trackMapping) for(let j=i;j<i+lower.length;j++) rawToAicl[j]=aiclPos;
@@ -111,6 +121,10 @@ export function encode(text, opts={}){
             }
             continue;
           }
+          // Fragments are safe only for all-lowercase words: a fragment run
+          // plus MOD_CAPS decodes as ...lastFragmentCapitalized because the
+          // decoder's modifier buffer holds a single symbol.
+          if (isAllLower) {
           let fragI=0, matchedFrag=false;
           const fragPatterns = getFragmentPatterns(sortedPatterns);
           while(fragI<lower.length){
@@ -128,13 +142,14 @@ export function encode(text, opts={}){
           }
           if(matchedFrag && fragI>0){
             i+=fragI;
-            if(word[0]!==lower[0]){ const cs=patternToSymbol.get('MOD_CAPS'); if(cs){ output+=cs; matches++; if(steps) steps.push({type:'modifier',name:'MOD_CAPS',pos:i}); aiclPos++; } }
             while(i<chars.length){
               const mn=punctuationToModifier(chars[i]);
               if(mn){ const ms=patternToSymbol.get(mn); if(ms){ output+=ms; matches++; if(steps) steps.push({type:'modifier',name:mn,pos:i}); aiclPos++; i++; continue; } }
               break;
             }
             continue;
+          }
+          }
           }
         }
       }
