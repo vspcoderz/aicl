@@ -35,4 +35,4 @@ Replace the Node.js implementation with Python across the repository, preserve l
 
 ## Status
 
-Implementation complete; final review pending. Baseline: Node tests 131/131; corpus 2.17x stage-1 compression; 16k-character encode 219 ms/call and 9.8k-symbol tokenize 200 ms/call. Python differential: 263/263 exact; warmed 10k medians: encode 11 ms, tokenize 15 ms.
+Done. Python conversion, parity checks, performance gate, acceptance evaluation, and packaging verification passed. Baseline: Node tests 131/131; corpus 2.17x stage-1 compression; 16k-character encode 219 ms/call and 9.8k-symbol tokenize 200 ms/call. Python differential: 263/263 exact; warmed 10k medians: encode 11 ms, tokenize 15 ms.
