@@ -1,8 +1,7 @@
 // AICL Playground (GitHub Pages) — 100% client-side.
-// Uses the same encoder/decoder/tokenizer as the library, bundled into
-// ./aicl.js by scripts/build_docs.mjs. Dictionary JSONs + vocab are fetched
-// relative to docs/ and primed into the ( normally fs-backed ) dict loader.
-import { primeDict, encode, decode, tokenize, detokenize, makeVocab, cpToId } from './aicl.js';
+// Uses the browser port of the canonical Python runtime in ./aicl.js.
+// Dictionary JSONs + vocab are fetched relative to docs/ and primed locally.
+import { primeDict, encode, decode, tokenizeWithMap, makeVocab } from './aicl.js';
 
 const $ = id => document.getElementById(id);
 const elInput = $('input');
@@ -135,7 +134,7 @@ function run() {
     const t1 = performance.now();
     const enc = encode(text, { steps: elToggleSteps.checked, trackMapping: true });
     const t2 = performance.now();
-    const ids = tokenize(enc.output, vocab);
+    const { ids, tokenMap } = tokenizeWithMap(enc.output, vocab);
     const t3 = performance.now();
     const roundtripOk = decode(enc.output).output === text;
 
@@ -150,7 +149,7 @@ function run() {
       pipeline: {
         aicl: enc.output, aiclLen: aiclChars, tokenIds: ids,
         rawToAicl: enc.rawToAicl, roundtripOk,
-        tokenMap: computeTokenMap(enc.output),
+        tokenMap,
         matches: enc.matches, literals: enc.literals,
         steps: (enc.steps || []).slice(0, 400),
       },
@@ -203,41 +202,6 @@ elInput.addEventListener('scroll', () => {
   elHighlight.scrollTop = elInput.scrollTop;
   elHighlight.scrollLeft = elInput.scrollLeft;
 });
-
-// char→token map, mirroring the BPE merge loop (same as server version)
-function computeTokenMap(aiclText) {
-  const chars = [...aiclText];
-  const n = chars.length;
-  if (n === 0) return [];
-  let slots = chars.map((_, i) => [i]);
-  let ids = chars.map(ch => cpToId(ch));
-  const pairIndex = new Map();
-  for (const [mergedId, rule] of vocab.merges) {
-    const key = rule.a + ':' + rule.b;
-    const existing = pairIndex.get(key);
-    if (!existing || rule.rank < existing.rank) pairIndex.set(key, { rank: rule.rank, mergedId, a: rule.a, b: rule.b });
-  }
-  while (true) {
-    let bestRank = Infinity, bestRule = null;
-    for (let i = 0; i < ids.length - 1; i++) {
-      const rule = pairIndex.get(ids[i] + ':' + ids[i + 1]);
-      if (rule && rule.rank < bestRank) { bestRank = rule.rank; bestRule = rule; if (bestRank === 0) break; }
-    }
-    if (!bestRule) break;
-    const nextIds = [], nextSlots = [];
-    for (let i = 0; i < ids.length; i++) {
-      if (i < ids.length - 1 && ids[i] === bestRule.a && ids[i + 1] === bestRule.b) {
-        nextIds.push(bestRule.mergedId);
-        nextSlots.push([...slots[i], ...slots[i + 1]]);
-        i++;
-      } else { nextIds.push(ids[i]); nextSlots.push(slots[i]); }
-    }
-    ids = nextIds; slots = nextSlots;
-  }
-  const tokenMap = new Array(n);
-  for (let tokIdx = 0; tokIdx < slots.length; tokIdx++) for (const charPos of slots[tokIdx]) tokenMap[charPos] = tokIdx;
-  return tokenMap;
-}
 
 document.addEventListener('mouseover', e => {
   const t = e.target.closest?.('[data-tok]');

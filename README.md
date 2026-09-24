@@ -4,7 +4,7 @@
 
 **A lossless text tokenizer that beats GPT-4o on every domain — English, code, SQL, markdown, ALL-CAPS, even text it has never seen.**
 
-[![Tests](https://img.shields.io/badge/tests-131%2F131_passing-brightgreen)](#-test-suite)
+[![Tests](https://img.shields.io/badge/tests-15%2F15_passing-brightgreen)](#-test-suite)
 [![License](https://img.shields.io/badge/license-MIT-black)](#license)
 [![Vocab](https://img.shields.io/badge/vocab-117,298_rules-blue)](#-how-it-works)
 [![Pages](https://img.shields.io/badge/playground-live_on_GitHub_Pages-8A2BE2)](https://vspcoderz.github.io/aicl/)
@@ -27,7 +27,7 @@
 
 ## 📊 Benchmarks
 
-### vs GPT-4o (`o200k_base`) — tokens, lower is better · `npm run benchmark`
+### vs GPT-4o (`o200k_base`) — tokens, lower is better · `uv run python scripts/benchmark.py`
 
 | Test | Raw | GPT-4o | AICL | Win |
 |---|---:|---:|---:|---:|
@@ -56,7 +56,7 @@ Benchmarks mean nothing if the tokenizer memorized them. Below, **none** of the 
 | Held-out 50 probes (8 domains) | **1.20×** | ✅ |
 | ALL-CAPS rant (playground stress test) | **1.24×** | ✅ |
 
-> Evaluate it yourself: `node scripts/eval_all.mjs` — 658 texts, structural sanity check, per-domain breakdown.
+> Evaluate it yourself: `uv run python scripts/eval_all.py` — 658 texts, structural sanity check, per-domain breakdown.
 
 ---
 
@@ -64,36 +64,49 @@ Benchmarks mean nothing if the tokenizer memorized them. Below, **none** of the 
 
 ```bash
 git clone https://github.com/vspcoderz/aicl && cd aicl
-npm install
+uv sync
 
 # Encode / decode from the CLI
-node src/cli.js encode "the quick brown fox jumps over the lazy dog"
-node src/cli.js decode "<AICL output>"
-node src/cli.js stats "SELECT * FROM users WHERE id = 42"
+uv run python -m aicl encode "the quick brown fox jumps over the lazy dog"
+uv run python -m aicl decode "<AICL output>"
+uv run python -m aicl stats "SELECT * FROM users WHERE id = 42"
 
-# Local playground (server-backed, with GPT/LLaMA comparison)
-npm run playground        # → http://localhost:8787
+# Local playground (Python server)
+uv run python playground/server.py  # → http://127.0.0.1:8787
 
 # Tests & benchmarks
-npm test                  # 131/131 passing
-npm run test:corpus       # 19 tests · 2.91× Stage 1, all lossless
-npm run benchmark         # regenerate assets/*.svg → *.png
-node scripts/eval_all.mjs # full acceptance eval (bench + held-out + unseen)
+uv run python -m unittest discover -s tests -v
+uv run python test_corpus.py
+uv run python scripts/benchmark.py
+uv run python scripts/eval_all.py
 ```
 
 ### As a library
 
-```javascript
-import { encode, decode } from './src/index.js';
-import { tokenize, detokenize, loadTokenizer } from './src/tokenizer/index.js';
+```python
+from aicl import decode, encode, detokenize, load_tokenizer, tokenize
 
-const aicl = encode("SELECT * FROM users WHERE id = 42");   // 36 → 13 PUA symbols
-const vocab = loadTokenizer();                               // 117,298 rules
-const tokens = tokenize(aicl.output, vocab);                 // → 7 tokens
+aicl = encode("SELECT * FROM users WHERE id = 42")
+vocab = load_tokenizer()
+tokens = tokenize(aicl["output"], vocab)
 
-decode(aicl.output).output === "SELECT * FROM users WHERE id = 42"; // true
-detokenize(tokens, vocab) === aicl.output;                          // true
+assert decode(aicl["output"])["output"] == "SELECT * FROM users WHERE id = 42"
+assert detokenize(tokens, vocab) == aicl["output"]
 ```
+
+The Python package is the canonical implementation. The static browser demo
+keeps a small checked-in JavaScript port because browsers cannot execute Python;
+its output is covered by the same golden vocabulary contract.
+
+## 🧪 Tests
+
+```bash
+uv run python -m unittest discover -s tests -v  # 15 Python tests
+uv run python test_corpus.py                     # 19 domain round trips
+```
+
+No training is part of the test suite. Trainer code is only compiled/imported;
+runtime tests use the shipped vocabulary or hand-authored merge fixtures.
 
 ---
 
@@ -129,17 +142,24 @@ The alias mechanism is the key to generalization: pair-keyed BPE can only ever c
 
 | | |
 |---|---|
-| **[Live on GitHub Pages](https://vspcoderz.github.io/aicl/)** | 100% client-side — the encoder, dictionary and vocab load in your browser; no server, no telemetry |
-| **Local (`npm run playground`)** | Full version: token heatmap, pipeline views, live bars vs GPT-3/4/4o/5 + LLaMA 2, step-by-step encoder trace |
+| **[Live on GitHub Pages](https://vspcoderz.github.io/aicl/)** | 100% client-side JavaScript demo; uses the same dictionary/vocab schemas as Python |
+| **Local (`uv run python playground/server.py`)** | Python server with token heatmap, pipeline views, and optional comparison integrations |
 
-Both versions show per-token colors inside the input box as you type.
+Both versions show per-token colors inside the input box as you type. The
+browser implementation is intentionally isolated in `docs/aicl.js`; Python is
+the canonical runtime.
 
 <details>
 <summary><b>Run the Pages demo from this repo</b></summary>
 
-GitHub Pages serves this repo's `/docs` folder, which imports `../src/encoder.js` and fetches `../dict/*.json` + `../tokenizer/vocab.json` directly from the repo — no build step.
+GitHub Pages serves this repo's `/docs` folder. The checked-in browser port
+loads `docs/dict/*.json` and `docs/tokenizer/vocab.json` directly; regenerate
+the copied assets with:
 
-To enable it: **Settings → Pages → Deploy from a branch → `main` → `/docs`**. Done.
+```bash
+uv run python scripts/build_docs.py
+```
+
 </details>
 
 ---
@@ -147,25 +167,34 @@ To enable it: **Settings → Pages → Deploy from a branch → `main` → `/doc
 ## 📁 Layout
 
 ```
-src/               encoder, decoder, tokenizer, unicode sanitizing, CLI
-dict/              english + code + symbols + modifiers (pattern → PUA symbol)
-tokenizer/         vocab.json — 117,298 rules (alias + learned BPE merges)
-corpus/            small local training corpus
-scripts/           trainer (train_fast.mjs), evals, benchmark, corpus tools
-playground/        server-backed playground (npm run playground)
-docs/              static client-side playground for GitHub Pages
+aicl/              canonical Python runtime, CLI, and packaged data
+dict/              source dictionary JSON (generator input/output)
+tokenizer/         source vocabulary JSON (packaged into the wheel)
+corpus/            local corpus fixtures and historical training inputs
+data/corpus_banks/ versioned Python corpus-builder inputs
+scripts/           Python trainers, corpus builders, evals, and benchmarks
+playground/        Python server + browser client
+docs/              static browser client and copied data
 assets/            benchmark charts (SVG/PNG)
+tests/             Python unit, parity, and performance coverage
 ```
 
 ## 🔧 Retraining
 
+Training code is Python and lives under `scripts/`, but the development machine
+must not execute it. Run large corpus preparation or tokenizer training on a
+separate machine with the generated data, then copy the resulting vocabulary
+back into `tokenizer/vocab.json`.
+
 ```bash
-node scripts/train_fast.mjs            # incremental trainer (aliases + BPE)
-scripts/train_resilient.mjs            # checkpoint/resume wrapper for big runs
-node scripts/eval_all.mjs              # acceptance eval after any change
+# Run elsewhere; not part of local verification:
+uv run python scripts/train_fast.py --help
+uv run python scripts/train_resilient.py --help
+uv run python scripts/eval_all.py
 ```
 
-The trainer fuses alias pairs/triples before learning, translates synthetic ids to runtime ids, and supports `initMerges` resume — verified byte-identical to a fresh run.
+The trainer fuses alias pairs/triples before learning, translates synthetic ids
+to runtime ids, and supports checkpoint/resume behavior.
 
 ## 📜 License
 

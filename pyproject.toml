@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "aicl"
+version = "2.0.0"
+description = "AICL - Massive Static Dictionary Compression with Vision Layer"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+authors = []
+keywords = ["compression", "unicode", "dictionary", "bpe", "text-compression"]
+dependencies = []
+
+[project.scripts]
+aicl = "aicl.cli:main"
+
+[dependency-groups]
+dev = []
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+include = ["aicl*"]
+
+[tool.setuptools.package-data]
+"aicl.data" = ["*.json"]

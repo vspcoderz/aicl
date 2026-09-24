@@ -1,5 +1,7 @@
 # BPE Tokenizer Best Practices for AICL (PUA Codepoints) — Research Notes
 
+> Historical research note. JavaScript paths and benchmarks describe the pre-conversion implementation; current runtime and training entrypoints live under `aicl/` and `scripts/*.py`.
+
 **Date:** 2026-09-04 · **Corpus:** ~650 k chars AICL (PUA symbols, not bytes/English) · **Goal:** tokens of length 2–5 PUA symbols
 
 > Every claim below cites a primary source. URLs are canonical; doc references give exact section/param.

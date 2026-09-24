@@ -193,7 +193,7 @@ async function run() {
     render(data);
     elStatus.textContent = `done · ${data.encodeMs}ms · ${data.vocab.merges} merges`;
   } catch (e) {
-    elStatus.textContent = 'offline — run: npm run playground';
+    elStatus.textContent = 'offline — run: uv run python playground/server.py';
     elRoundtrip.textContent = String(e.message || e);
     elRoundtrip.className = 'roundtrip bad';
     elPerfSection.style.display = 'none';
