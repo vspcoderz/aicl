@@ -54,12 +54,18 @@ class StageOneTests(unittest.TestCase):
         )
         self.assertEqual(
             [ord(ch) for ch in camel["output"]],
-            [0xF667, 0xE179, 0x100800, 0xE378, 0x100800],
+            [0xF667, 0xE01D, 0xE082, 0xE005, 0xE378, 0x100800],
         )
         self.assertEqual(aicl.decode(caps["output"])["output"], "HELLO, WORLD!")
         self.assertEqual(aicl.decode(camel["output"])["output"], "camelCaseWord")
 
-    def test_dangling_escape_is_defensive(self) -> None:
+    def test_irregular_casing_falls_back_losslessly(self) -> None:
+        for value in ("Parser", "ABCdef", "sV", "iPhone", "XMLParser", "camelCaseWord"):
+            with self.subTest(value=value):
+                encoded = aicl.encode(value)["output"]
+                self.assertEqual(aicl.decode(encoded)["output"], value)
+
+
         result = aicl.decode(aicl.ESCAPE_MARKER, {"steps": True})
         self.assertEqual(result["output"], aicl.ESCAPE_MARKER)
         self.assertEqual(result["literals"], 1)

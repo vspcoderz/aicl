@@ -92,6 +92,12 @@ def encode(text: str, opts: Mapping[str, Any] | None = None) -> dict[str, Any]:
             if len(word) > 1:
                 lower = word.lower()
                 is_all_caps = _all_caps(word)
+                is_all_lower = word == lower
+                is_title_case = (
+                    not is_all_lower
+                    and word[0] != lower[0]
+                    and word[1:] == lower[1:]
+                )
                 if is_all_caps:
                     caps_symbol = pattern_to_symbol.get(word)
                     if caps_symbol is not None:
@@ -132,8 +138,7 @@ def encode(text: str, opts: Mapping[str, Any] | None = None) -> dict[str, Any]:
                         )
                         continue
                 else:
-                    rest = word[1:]
-                    if rest == rest.lower():
+                    if is_all_lower or is_title_case:
                         base_symbol = pattern_to_symbol.get(lower)
                         if base_symbol is not None:
                             if raw_to_aicl is not None:
@@ -160,7 +165,7 @@ def encode(text: str, opts: Mapping[str, Any] | None = None) -> dict[str, Any]:
 
                 fragment_index = 0
                 matched_fragment = False
-                while fragment_index < len(lower):
+                while is_all_lower and fragment_index < len(lower):
                     best_fragment: str | None = None
                     best_fragment_length = 0
                     for fragment in fragment_patterns:
